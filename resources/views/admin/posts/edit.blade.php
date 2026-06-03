@@ -22,9 +22,34 @@
             </div>
 
             <div class="mb-4">
-                <label class="block text-sm font-medium mb-1">发布时间</label>
-                <input type="datetime-local" name="published_at" class="w-full rounded-lg border border-neutral-200 px-3 py-2 dark:border-neutral-700"
-                       value="{{ old('published_at', $post->published_at ? $post->published_at->format('Y-m-d\TH:i') : '') }}">
+                <label class="block text-sm font-medium mb-1">状态</label>
+                <div class="space-y-2">
+                    <p class="text-xs text-neutral-500">
+                        当前状态：
+                        @if ($post->published_at && $post->published_at->isPast())
+                            <span class="text-green-600 font-medium">已发布</span>
+                            （{{ $post->published_at->format('Y-m-d H:i') }}）
+                        @elseif ($post->published_at && $post->published_at->isFuture())
+                            <span class="text-yellow-600 font-medium">定时发布</span>
+                            （{{ $post->published_at->format('Y-m-d H:i') }}）
+                        @else
+                            <span class="text-yellow-600 font-medium">草稿</span>
+                        @endif
+                    </p>
+
+                    <label class="flex items-center gap-2 text-sm">
+                        <input type="checkbox" name="publish" value="1"
+                            @checked($post->published_at && $post->published_at->isPast())>
+                        <span>已发布</span>
+                    </label>
+
+                    <p class="text-xs text-neutral-500">
+                        或指定定时发布时间：
+                        <input type="datetime-local" name="published_at"
+                            class="mt-1 rounded-lg border border-neutral-200 px-3 py-2 dark:border-neutral-700"
+                            value="{{ old('published_at', $post->published_at ? $post->published_at->format('Y-m-d\TH:i') : '') }}">
+                    </p>
+                </div>
             </div>
 
             <button type="submit" class="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">

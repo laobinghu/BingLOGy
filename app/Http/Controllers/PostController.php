@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class PostController extends Controller
@@ -13,9 +12,10 @@ class PostController extends Controller
     // 前台
     public function index(): View
     {
-        $posts = Post::where('published_at', '<=', now())
+        $posts = Post::whereNotNull('published_at')
+            ->where('published_at', '<=', now())
             ->orderBy('published_at', 'desc')
-            ->get();
+            ->paginate(20);
 
         return view('posts.index', compact('posts'));
     }
@@ -47,11 +47,14 @@ class PostController extends Controller
         ]);
 
         $validated['user_id'] = auth()->id();
-        $validated['slug'] = Str::slug($validated['title']);
+
+        if ($request->boolean('publish') && ! $request->filled('published_at')) {
+            $validated['published_at'] = now();
+        }
 
         Post::create($validated);
 
-        return redirect()->route('admin.posts.index')->with('success', '文章已发布！');
+        return redirect()->route('admin.posts.index')->with('success', '文章已创建！');
     }
 
     public function create(): View
@@ -73,9 +76,17 @@ class PostController extends Controller
             'published_at' => 'nullable|date',
         ]);
 
-        $validated['slug'] = Str::slug($validated['title']);
+        unset($validated['published_at']);
 
-        $post->update($validated);
+        $post->fill($validated);
+
+        $post->published_at = match (true) {
+            $request->filled('published_at') => $request->date('published_at'),
+            $request->boolean('publish') => $post->published_at ?? now(),
+            default => null,
+        };
+
+        $post->save();
 
         return redirect()->route('admin.posts.index')->with('success', '文章已更新！');
     }

@@ -23,6 +23,23 @@
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a;
 
+    --color-stone-50: #fafaf9;
+    --color-stone-100: #f5f5f4;
+    --color-stone-200: #e7e5e4;
+    --color-stone-300: #d6d3d1;
+    --color-stone-400: #a8a29e;
+    --color-stone-500: #78716c;
+    --color-stone-600: #57534e;
+    --color-stone-700: #44403c;
+    --color-stone-800: #292524;
+    --color-stone-900: #1c1917;
+    --color-stone-950: #0c0a09;
+
+    --color-paper: #f6f1e8;
+    --color-paper-soft: #fffaf2;
+    --color-paper-muted: #efe7da;
+    --color-paper-edge: rgba(168, 162, 158, 0.45);
+
     --color-accent: var(--color-neutral-800);
     --color-accent-content: var(--color-neutral-800);
     --color-accent-foreground: var(--color-white);
@@ -33,6 +50,11 @@
         --color-accent: var(--color-white);
         --color-accent-content: var(--color-white);
         --color-accent-foreground: var(--color-neutral-800);
+
+        --color-paper: #1c1917;
+        --color-paper-soft: #292524;
+        --color-paper-muted: #44403c;
+        --color-paper-edge: rgba(168, 162, 158, 0.25);
     }
 }
 

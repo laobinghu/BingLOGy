@@ -1,21 +1,42 @@
 <?php
 
 use App\Http\Controllers\PostController;
+use App\Models\Post;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    $posts = Post::whereNotNull('published_at')
+        ->where('published_at', '<=', now())
+        ->orderBy('published_at', 'desc')
+        ->limit(7)
+        ->get();
+
+    $featured = $posts->shift();
+
+    return view('welcome', compact('posts', 'featured'));
 })->name('home');
 
+Route::get('/feed', function () {
+    $posts = Post::whereNotNull('published_at')
+        ->where('published_at', '<=', now())
+        ->orderBy('published_at', 'desc')
+        ->limit(20)
+        ->get();
+
+    return response()
+        ->view('feed', ['posts' => $posts])
+        ->header('Content-Type', 'application/atom+xml; charset=UTF-8');
+})->name('feed');
+
 Route::get('/dashboard', function () {
-    $totalPosts = \App\Models\Post::count();
-    $publishedPosts = \App\Models\Post::whereNotNull('published_at')
+    $totalPosts = Post::count();
+    $publishedPosts = Post::whereNotNull('published_at')
         ->where('published_at', '<=', now())
         ->count();
-    $draftPosts = \App\Models\Post::whereNull('published_at')
+    $draftPosts = Post::whereNull('published_at')
         ->orWhere('published_at', '>', now())
         ->count();
-    $recentPosts = \App\Models\Post::orderBy('created_at', 'desc')
+    $recentPosts = Post::orderBy('created_at', 'desc')
         ->take(5)
         ->get();
 

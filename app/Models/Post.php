@@ -7,13 +7,14 @@ use Illuminate\Support\Str;
 
 class Post extends Model
 {
-    protected $fillable = ['title', 'slug', 'body', 'excerpt', 'published_at'];
+    protected $fillable = ['user_id', 'title', 'slug', 'body', 'excerpt', 'published_at'];
 
     protected static function booted(): void
     {
-        static::creating(function (Post $post) {
+        static::saving(function (Post $post) {
             if (! $post->slug) {
-                $post->slug = Str::slug($post->title);
+                $slug = Str::slug($post->title);
+                $post->slug = $slug ?: md5($post->title.microtime());
             }
         });
     }
