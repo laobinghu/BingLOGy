@@ -11,6 +11,12 @@
         </a>
     </h2>
 
+    @if ($post->cover_image)
+        <div class="mb-5 overflow-hidden rounded-xl">
+            <img src="{{ Storage::url($post->cover_image) }}" alt="{{ $post->title }}" class="h-44 w-full object-cover sm:h-52">
+        </div>
+    @endif
+
     <p class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-stone-500 dark:text-stone-400">
         <time datetime="{{ $post->published_at->toDateString() }}" class="tabular-nums">
             {{ $post->published_at->format('Y 年 n 月 j 日') }}
@@ -19,9 +25,19 @@
         <span class="tabular-nums">{{ \App\Support\PostPresenter::readingTime($post) }} 分钟阅读</span>
         <span class="text-stone-300 dark:text-stone-600">·</span>
         <span class="tabular-nums">{{ \App\Support\PostPresenter::wordCount($post) }} 字</span>
+        <span class="text-stone-300 dark:text-stone-600">·</span>
+        <span class="tabular-nums">{{ number_format($post->views) }} 次阅读</span>
     </p>
 
-    <p class="mt-6 max-w-2xl text-base leading-7 text-stone-700 sm:text-lg sm:leading-8 dark:text-stone-300">
+    @if ($post->relationLoaded('tags') && $post->tags->isNotEmpty())
+        <div class="mt-4 flex flex-wrap gap-1.5">
+            @foreach ($post->tags as $tag)
+                <span class="rounded-full bg-stone-200/60 px-2.5 py-0.5 text-[11px] font-medium text-stone-600 dark:bg-stone-800 dark:text-stone-400">{{ $tag->name }}</span>
+            @endforeach
+        </div>
+    @endif
+
+    <p class="mt-5 max-w-2xl text-base leading-7 text-stone-700 sm:text-lg sm:leading-8 dark:text-stone-300">
         {{ \App\Support\PostPresenter::excerpt($post, 240) }}
     </p>
 

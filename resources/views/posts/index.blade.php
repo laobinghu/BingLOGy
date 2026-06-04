@@ -14,29 +14,59 @@
             </p>
         </header>
 
-        <div class="mt-12">
+        @if ($allTags->isNotEmpty())
+            <div class="mt-8 mb-12 flex flex-wrap items-center gap-2">
+                <span class="text-xs font-medium tracking-[0.22em] text-stone-500 uppercase dark:text-stone-400">标签</span>
+                <a href="{{ route('posts.index') }}"
+                    class="rounded-full px-3 py-1 text-xs font-medium transition {{ request()->missing('tag') ? 'bg-stone-900 text-stone-50 dark:bg-stone-100 dark:text-stone-900' : 'bg-stone-200/60 text-stone-700 hover:bg-stone-300/60 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700' }}">
+                    全部
+                </a>
+                @foreach ($allTags as $tag)
+                    <a href="{{ route('posts.index', ['tag' => $tag->slug]) }}"
+                        class="rounded-full px-3 py-1 text-xs font-medium transition {{ request('tag') === $tag->slug ? 'bg-stone-900 text-stone-50 dark:bg-stone-100 dark:text-stone-900' : 'bg-stone-200/60 text-stone-700 hover:bg-stone-300/60 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700' }}">
+                        {{ $tag->name }}
+                    </a>
+                @endforeach
+            </div>
+        @endif
+
+        <div class="mt-4">
             @if ($posts->isNotEmpty())
                 @include('partials.post-timeline', [
                     'groups' => \App\Support\PostPresenter::groupByYear($posts->getCollection()),
                 ])
 
-                @if ($posts->hasMorePages())
-                    <div class="mt-12 flex items-center justify-between border-t border-stone-300/70 pt-6 text-sm dark:border-stone-700/60">
-                        <p class="text-stone-500 dark:text-stone-400">
-                            第 {{ $posts->firstItem() }}–{{ $posts->lastItem() }} 篇 / 共 {{ $posts->total() }} 篇
-                        </p>
-                        <div class="flex items-center gap-4">
-                            @if ($posts->onFirstPage())
-                                <span class="cursor-not-allowed text-stone-300 dark:text-stone-600">← 上一页</span>
-                            @else
-                                <a href="{{ $posts->previousPageUrl() }}" class="text-stone-700 transition hover:text-stone-950 dark:text-stone-300 dark:hover:text-stone-50">← 上一页</a>
-                            @endif
+                @if ($posts->hasPages())
+                    <div class="mt-12 border-t border-stone-300/70 pt-6 text-sm dark:border-stone-700/60">
+                        <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
+                            <p class="text-stone-500 dark:text-stone-400 tabular-nums">
+                                第 {{ $posts->firstItem() }}–{{ $posts->lastItem() }} 篇 / 共 {{ $posts->total() }} 篇
+                            </p>
 
-                            @if ($posts->hasMorePages())
-                                <a href="{{ $posts->nextPageUrl() }}" class="text-stone-700 transition hover:text-stone-950 dark:text-stone-300 dark:hover:text-stone-50">下一页 →</a>
-                            @else
-                                <span class="cursor-not-allowed text-stone-300 dark:text-stone-600">下一页 →</span>
-                            @endif
+                            <div class="flex items-center gap-1">
+                                {{-- Previous --}}
+                                @if ($posts->onFirstPage())
+                                    <span class="inline-flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-full text-stone-300 dark:text-stone-600">&lsaquo;</span>
+                                @else
+                                    <a href="{{ $posts->previousPageUrl() }}" class="inline-flex h-8 w-8 items-center justify-center rounded-full text-stone-700 transition hover:bg-stone-200/60 hover:text-stone-950 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-stone-50">&lsaquo;</a>
+                                @endif
+
+                                {{-- Page numbers --}}
+                                @foreach ($posts->getUrlRange(max(1, $posts->currentPage() - 2), min($posts->lastPage(), $posts->currentPage() + 2)) as $page => $url)
+                                    @if ($page == $posts->currentPage())
+                                        <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-stone-900 text-xs font-medium text-stone-50 dark:bg-stone-100 dark:text-stone-900">{{ $page }}</span>
+                                    @else
+                                        <a href="{{ $url }}" class="inline-flex h-8 w-8 items-center justify-center rounded-full text-xs text-stone-700 transition hover:bg-stone-200/60 hover:text-stone-950 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-stone-50">{{ $page }}</a>
+                                    @endif
+                                @endforeach
+
+                                {{-- Next --}}
+                                @if ($posts->hasMorePages())
+                                    <a href="{{ $posts->nextPageUrl() }}" class="inline-flex h-8 w-8 items-center justify-center rounded-full text-stone-700 transition hover:bg-stone-200/60 hover:text-stone-950 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-stone-50">&rsaquo;</a>
+                                @else
+                                    <span class="inline-flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-full text-stone-300 dark:text-stone-600">&rsaquo;</span>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 @endif

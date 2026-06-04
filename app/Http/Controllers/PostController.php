@@ -3,26 +3,38 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Models\Tag;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class PostController extends Controller
 {
     // 前台
-    public function index(): View
+    public function index(Request $request): View
     {
-        $posts = Post::whereNotNull('published_at')
-            ->where('published_at', '<=', now())
-            ->orderBy('published_at', 'desc')
-            ->paginate(20);
+        $query = Post::with('tags')
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now());
 
-        return view('posts.index', compact('posts'));
+        if ($tagSlug = $request->query('tag')) {
+            $tag = Tag::where('slug', $tagSlug)->firstOrFail();
+            $query->whereHas('tags', fn ($q) => $q->where('tags.id', $tag->id));
+        }
+
+        $posts = $query->orderBy('published_at', 'desc')->paginate(20);
+        $allTags = Tag::withCount('posts')->orderBy('name')->get();
+
+        return view('posts.index', compact('posts', 'allTags'));
     }
 
     public function show(Post $post): View
     {
         abort_if(is_null($post->published_at) || $post->published_at->isFuture(), 404);
+
+        $post->load('tags');
+        $post->increment('views');
 
         return view('posts.show', compact('post'));
     }
@@ -44,6 +56,7 @@ class PostController extends Controller
             'body' => 'required',
             'excerpt' => 'nullable',
             'published_at' => 'nullable|date',
+            'cover_image' => 'nullable|image|mimes:jpeg,png,webp|max:2048',
         ]);
 
         $validated['user_id'] = auth()->id();
@@ -52,19 +65,28 @@ class PostController extends Controller
             $validated['published_at'] = now();
         }
 
-        Post::create($validated);
+        if ($request->hasFile('cover_image')) {
+            $validated['cover_image'] = $request->file('cover_image')->store('covers', 'public');
+        }
+
+        $post = Post::create($validated);
+        $post->tags()->sync($request->input('tags', []));
 
         return redirect()->route('admin.posts.index')->with('success', '文章已创建！');
     }
 
     public function create(): View
     {
-        return view('admin.posts.create');
+        $tags = Tag::orderBy('name')->get();
+
+        return view('admin.posts.create', compact('tags'));
     }
 
     public function edit(Post $post): View
     {
-        return view('admin.posts.edit', compact('post'));
+        $tags = Tag::orderBy('name')->get();
+
+        return view('admin.posts.edit', compact('post', 'tags'));
     }
 
     public function update(Request $request, Post $post): RedirectResponse
@@ -74,9 +96,24 @@ class PostController extends Controller
             'body' => 'required',
             'excerpt' => 'nullable',
             'published_at' => 'nullable|date',
+            'cover_image' => 'nullable|image|mimes:jpeg,png,webp|max:2048',
         ]);
 
         unset($validated['published_at']);
+
+        if ($request->boolean('remove_cover')) {
+            if ($post->cover_image) {
+                Storage::disk('public')->delete($post->cover_image);
+            }
+            $validated['cover_image'] = null;
+        } elseif ($request->hasFile('cover_image')) {
+            if ($post->cover_image) {
+                Storage::disk('public')->delete($post->cover_image);
+            }
+            $validated['cover_image'] = $request->file('cover_image')->store('covers', 'public');
+        } else {
+            unset($validated['cover_image']);
+        }
 
         $post->fill($validated);
 
@@ -87,6 +124,7 @@ class PostController extends Controller
         };
 
         $post->save();
+        $post->tags()->sync($request->input('tags', []));
 
         return redirect()->route('admin.posts.index')->with('success', '文章已更新！');
     }

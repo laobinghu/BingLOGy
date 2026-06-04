@@ -13,7 +13,7 @@
             </a>
 
             @auth
-                <a href="{{ route('dashboard') }}" class="transition hover:text-stone-950 dark:hover:text-stone-50">
+                <a href="{{ route('admin.index') }}" class="transition hover:text-stone-950 dark:hover:text-stone-50">
                     仪表盘
                 </a>
             @else

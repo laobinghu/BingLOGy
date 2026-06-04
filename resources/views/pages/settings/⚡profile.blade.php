@@ -2,19 +2,21 @@
 
 use App\Concerns\ProfileValidationRules;
 /* @chisel-email-verification */
-use Illuminate\Contracts\Auth\MustVerifyEmail;
-/* @end-chisel-email-verification */
 use Flux\Flux;
+/* @end-chisel-email-verification */
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-new #[Title('Profile settings')] class extends Component {
+new #[Title('Profile settings')] class extends Component
+{
     use ProfileValidationRules;
 
     public string $name = '';
+
     public string $email = '';
 
     /**
@@ -55,7 +57,7 @@ new #[Title('Profile settings')] class extends Component {
         $user = Auth::user();
 
         if ($user->hasVerifiedEmail()) {
-            $this->redirectIntended(default: route('dashboard', absolute: false));
+            $this->redirectIntended(default: route('admin.index', absolute: false));
 
             return;
         }

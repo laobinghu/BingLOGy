@@ -23,6 +23,11 @@ class PostPresenter
         return self::readingTime($post).' 分钟阅读';
     }
 
+    public static function bodyHtml(Post $post): string
+    {
+        return Markdown::toHtml($post->body);
+    }
+
     public static function excerpt(Post $post, int $limit = 200): string
     {
         if (! empty($post->excerpt)) {

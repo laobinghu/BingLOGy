@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 
 class Post extends Model
 {
-    protected $fillable = ['user_id', 'title', 'slug', 'body', 'excerpt', 'published_at'];
+    protected $fillable = ['user_id', 'title', 'slug', 'body', 'excerpt', 'published_at', 'cover_image', 'views'];
 
     protected static function booted(): void
     {
@@ -17,6 +17,11 @@ class Post extends Model
                 $post->slug = $slug ?: md5($post->title.microtime());
             }
         });
+    }
+
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class);
     }
 
     public function getRouteKeyName(): string

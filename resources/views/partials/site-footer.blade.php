@@ -8,7 +8,7 @@
                 RSS
             </a>
             <span class="text-stone-300 dark:text-stone-600">·</span>
-            <span>用 Laravel 和 Tailwind CSS 构建</span>
+            <span>Powered by BingLOGy</span>
         </p>
     </div>
 </footer>

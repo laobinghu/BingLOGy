@@ -5,7 +5,7 @@
     <link href="{{ route('home') }}" />
     <id>{{ route('home') }}</id>
     <updated>{{ $posts->first()?->published_at?->toAtomString() ?? now()->toAtomString() }}</updated>
-    <generator>Laravel</generator>
+    <generator>BingLOGy</generator>
     <language>zh-CN</language>
 
     @foreach ($posts as $post)
@@ -16,6 +16,10 @@
             <updated>{{ $post->updated_at->toAtomString() }}</updated>
             <published>{{ $post->published_at->toAtomString() }}</published>
             <summary>{{ \App\Support\PostPresenter::excerpt($post, 280) }}</summary>
+            <content type="html"><![CDATA[
+                <h2>{{ $post->title }}</h2>
+                {{ \App\Support\PostPresenter::bodyHtml($post) }}
+            ]]></content>
         </entry>
     @endforeach
 </feed>

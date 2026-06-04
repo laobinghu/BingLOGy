@@ -27,16 +27,31 @@
                                     {{ $post->published_at->format('M j') }}
                                 </time>
                                 <div class="flex-1">
-                                    <h4 class="text-base font-semibold text-stone-900 group-hover:text-stone-700 dark:text-stone-100 dark:group-hover:text-stone-300">
-                                        {{ $post->title }}
-                                    </h4>
+                                    <div class="flex items-start gap-3">
+                                        @if ($post->cover_image)
+                                            <img src="{{ Storage::url($post->cover_image) }}" alt="" class="mt-0.5 h-10 w-16 shrink-0 rounded-lg object-cover">
+                                        @endif
+                                        <h4 class="text-base font-semibold text-stone-900 group-hover:text-stone-700 dark:text-stone-100 dark:group-hover:text-stone-300">
+                                            {{ $post->title }}
+                                        </h4>
+                                    </div>
                                     <p class="mt-1 line-clamp-1 text-sm text-stone-600 dark:text-stone-400">
                                         {{ \App\Support\PostPresenter::excerpt($post, 120) }}
                                     </p>
+                                    @if ($post->relationLoaded('tags') && $post->tags->isNotEmpty())
+                                        <div class="mt-1 flex flex-wrap gap-1.5">
+                                            @foreach ($post->tags as $tag)
+                                                <span class="rounded-full bg-stone-200/50 px-2 py-0.5 text-[10px] font-medium text-stone-600 dark:bg-stone-800 dark:text-stone-400">{{ $tag->name }}</span>
+                                            @endforeach
+                                        </div>
+                                    @endif
                                 </div>
-                                <span class="shrink-0 text-xs text-stone-400 tabular-nums dark:text-stone-500">
-                                    {{ \App\Support\PostPresenter::readingTime($post) }} 分钟
-                                </span>
+                                <div class="shrink-0 text-right text-xs text-stone-400 tabular-nums dark:text-stone-500">
+                                    <div>{{ \App\Support\PostPresenter::readingTime($post) }} 分钟</div>
+                                    @if ($post->views)
+                                        <div>{{ number_format($post->views) }} 次阅读</div>
+                                    @endif
+                                </div>
                             </div>
                         </a>
                     </li>
