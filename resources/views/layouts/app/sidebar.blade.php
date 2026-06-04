@@ -19,6 +19,10 @@
                     <flux:sidebar.item icon="document-text" :href="route('admin.posts.index')" :current="request()->routeIs('admin.posts.*')" wire:navigate>
                         文章管理
                     </flux:sidebar.item>
+
+                    <flux:sidebar.item icon="hard-drive" :href="route('admin.storage.index')" :current="request()->routeIs('admin.storage.*')" wire:navigate>
+                        存储管理
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 

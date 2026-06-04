@@ -76,6 +76,10 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::post('tags', [TagController::class, 'store'])->name('tags.store');
     Route::put('tags/{tag}', [TagController::class, 'update'])->name('tags.update');
     Route::delete('tags/{tag}', [TagController::class, 'destroy'])->name('tags.destroy');
+
+    Route::get('storage', \App\Livewire\Admin\Storage\Index::class)->name('storage.index');
+    Route::get('storage/create', \App\Livewire\Admin\Storage\Form::class)->name('storage.create');
+    Route::get('storage/{disk}/edit', \App\Livewire\Admin\Storage\Form::class)->name('storage.edit');
 });
 
 require __DIR__.'/settings.php';

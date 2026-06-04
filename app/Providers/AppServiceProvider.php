@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\StorageManager;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +24,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        try {
+            StorageManager::registerDisks();
+        } catch (\Throwable $e) {
+            // DB may not exist during first migration
+        }
+
         $this->configureDefaults();
     }
 
