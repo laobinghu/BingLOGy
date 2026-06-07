@@ -9,6 +9,8 @@
 .codewhale
 .vite-hooks
 node_modules
+vendor/
+public/build/
 tests
 plans
 *.md

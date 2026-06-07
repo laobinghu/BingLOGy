@@ -31,7 +31,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
     pnpm install --ignore-scripts --frozen-lockfile
 
-COPY vite.config.js tailwind.config.js postcss.config.js ./
+COPY vite.config.js ./
 COPY resources/ ./resources/
 COPY public/ ./public/
 
