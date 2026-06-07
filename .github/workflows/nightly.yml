@@ -21,6 +21,12 @@ jobs:
           - platform: linux/amd64
           - platform: linux/arm64
     steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
       - name: 计算日期和 SHA
         id: meta-info
         run: |
@@ -29,12 +35,6 @@ jobs:
           echo "sha=${SHA}" >> "$GITHUB_OUTPUT"
           echo "date=${DATE}" >> "$GITHUB_OUTPUT"
           echo "version_tag=nightly-${DATE}-${SHA}" >> "$GITHUB_OUTPUT"
-
-      - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-        with:
-          persist-credentials: false
-          fetch-depth: 0
 
       - name: Setup PHP
         uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2
