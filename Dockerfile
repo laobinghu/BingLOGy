@@ -31,6 +31,10 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
     pnpm install --ignore-scripts --frozen-lockfile
 
+# vendor 不在 frontend 阶段时,CSS 里 @import "../../vendor/.../*.css" 解析不到
+# 从 vendor 阶段拷过来,仅供 pnpm build 解析路径用 (不会进入最终镜像)
+COPY --from=vendor /app/vendor /app/vendor
+
 COPY vite.config.js ./
 COPY resources/ ./resources/
 COPY public/ ./public/
