@@ -35,8 +35,7 @@
         "vite": "catalog:"
     },
     "devDependencies": {
-        "@tailwindcss/typography": "^0.5.19",
-        "vite-plus": "catalog:"
+        "@tailwindcss/typography": "^0.5.19"
     },
     "optionalDependencies": {
         "@rollup/rollup-linux-x64-gnu": "4.9.5",
