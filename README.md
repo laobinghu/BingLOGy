@@ -169,7 +169,7 @@ Issues 与 PR 都欢迎。请确保:
 
 ## 📄 许可证
 
-MIT(待添加 `LICENSE` 文件)。
+MIT — 详见 [LICENSE](LICENSE)。
 
 ---
 
