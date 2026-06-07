@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Laravel\Pulse\Pulse;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,6 +31,8 @@ class AppServiceProvider extends ServiceProvider
         PluginManager::loadActivePlugins();
 
         Gate::before(fn ($user, $ability) => $user->id === 1 ? true : null);
+
+        Gate::define('viewPulse', fn (mixed $user) => $user !== null);
 
         $this->configureDefaults();
     }
