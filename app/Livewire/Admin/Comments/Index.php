@@ -8,7 +8,7 @@ use Livewire\Component;
 
 class Index extends Component
 {
-    #[Layout('livewire.admin.layout')]
+    #[Layout('admin.layout')]
     public string $tab = 'pending';
 
     public function setTab(string $tab): void

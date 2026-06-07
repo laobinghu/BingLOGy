@@ -7,7 +7,7 @@ use App\Models\UploadPolicy;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-#[Layout('livewire.admin.layout')]
+#[Layout('admin.layout')]
 class Form extends Component
 {
     public ?UploadPolicy $policy = null;

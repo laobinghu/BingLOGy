@@ -11,7 +11,7 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 use Symfony\Component\Yaml\Yaml;
 
-#[Layout('livewire.admin.layout')]
+#[Layout('admin.layout')]
 class Index extends Component
 {
     use WithFileUploads;

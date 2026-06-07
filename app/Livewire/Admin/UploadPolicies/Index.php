@@ -10,7 +10,7 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Storage;
 
-#[Layout('livewire.admin.layout')]
+#[Layout('admin.layout')]
 class Index extends Component
 {
     use WithFileUploads;

@@ -8,7 +8,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
-#[Layout('livewire.admin.layout')]
+#[Layout('admin.layout')]
 class BlogSettings extends Component
 {
     use WithFileUploads;

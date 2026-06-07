@@ -6,7 +6,7 @@ use App\Models\StorageStrategy;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-#[Layout('livewire.admin.layout')]
+#[Layout('admin.layout')]
 class Form extends Component
 {
     public ?StorageStrategy $strategy = null;
