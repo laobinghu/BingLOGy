@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.4.1](https://github.com/laobinghu/BingLOGy/compare/v0.4.0...v0.4.1) (2026-06-07)
+
+
+### Bug Fixes
+
+* install ext-pcntl in Docker vendor stage for Horizon ([9999711](https://github.com/laobinghu/BingLOGy/commit/99997111c623eded73c214830f4cd706f9a6d19d))
+
+
+### Miscellaneous Chores
+
+* **main:** release 0.4.0 ([308ab6a](https://github.com/laobinghu/BingLOGy/commit/308ab6aa3e938886acd1e11a3c7ed9ef56dbd2c9))
+* **main:** release 0.4.0 ([37603e5](https://github.com/laobinghu/BingLOGy/commit/37603e524e76d0336f6a8c04ebea8a42b77d3231))
+
 ## [0.4.0](https://github.com/laobinghu/BingLOGy/compare/v0.3.0...v0.4.0) (2026-06-07)
 
 
