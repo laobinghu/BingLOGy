@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0](https://github.com/laobinghu/BingLOGy/compare/v0.2.0...v0.3.0) (2026-06-07)
+
+
+### Features
+
+* Flux UI refactor for admin posts + roles system ([ed863bf](https://github.com/laobinghu/BingLOGy/commit/ed863bf42fa37484b5048897bdf90ba27a6d9dc9))
+
+
+### Bug Fixes
+
+* markdown front matter date parsing and import tag selection ([183c532](https://github.com/laobinghu/BingLOGy/commit/183c5320036d9df1b3cacae6b433b4d757ff0b15))
+
 ## [0.2.0](https://github.com/laobinghu/BingLOGy/compare/v0.1.0...v0.2.0) (2026-06-07)
 
 
