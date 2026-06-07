@@ -48,7 +48,7 @@ BingLOGy 是一个**自托管的个人/小团队博客系统**,基于 **Laravel 
 
 | 类别      | 选型                                                              |
 | --------- | ----------------------------------------------------------------- |
-| 后端框架  | PHP 8.3+ / Laravel 13                                             |
+| 后端框架  | PHP 8.4+ / Laravel 13                                             |
 | 前端栈    | Livewire 4 + Flux 2 + Tailwind 4 + Alpine.js                      |
 | 资源构建  | Vite-plus (`vp build` / `vp dev` / `vp check`)                    |
 | Markdown  | [Milkdown 7](https://milkdown.dev) (ProseMirror) + `highlight.js` |
@@ -62,7 +62,7 @@ BingLOGy 是一个**自托管的个人/小团队博客系统**,基于 **Laravel 
 
 ### 环境要求
 
-- PHP **8.3+**(扩展:`pdo_sqlite` 或 `pdo_mysql`、`mbstring`、`openssl`、`curl`、`intl`、`fileinfo`)
+- PHP **8.4+**(扩展:`pdo_sqlite` 或 `pdo_mysql`、`mbstring`、`openssl`、`curl`、`intl`、`fileinfo`)
 - Node.js **20+** + Vite-plus(`npm i -g vite-plus` 或 `vp env doctor` 自检)
 - Composer 2.x
 
