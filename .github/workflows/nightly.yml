@@ -1,0 +1,113 @@
+name: nightly
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  nightly:
+    name: nightly build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+          - platform: linux/arm64
+    steps:
+      - name: 计算日期和 SHA
+        id: meta-info
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          DATE=$(date +%Y%m%d)
+          echo "sha=${SHA}" >> "$GITHUB_OUTPUT"
+          echo "date=${DATE}" >> "$GITHUB_OUTPUT"
+          echo "version_tag=nightly-${DATE}-${SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2
+        with:
+          php-version: "8.4"
+          tools: composer:v2
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: "22"
+
+      - name: Install pnpm (latest)
+        run: npm install -g pnpm
+
+      - name: Add Flux credentials
+        run: composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
+
+      - name: Install Composer dependencies (no dev)
+        run: composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-progress
+
+      - name: Install Node dependencies
+        run: pnpm install --ignore-scripts
+
+      - name: Build frontend assets
+        run: pnpm build
+
+      - name: Build nightly fat tarball
+        run: bash scripts/build-tarball.sh nightly
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to ghcr.io
+        if: matrix.platform == 'linux/amd64'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to Docker Hub
+        if: matrix.platform == 'linux/amd64'
+        uses: docker/login-action@v3
+        with:
+          username: laobinghu
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & push nightly Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          push: ${{ matrix.platform == 'linux/amd64' }}
+          tags: |
+            ghcr.io/laobinghu/binglogy:nightly
+            ghcr.io/laobinghu/binglogy:nightly-${{ steps.meta-info.outputs.date }}
+            ghcr.io/laobinghu/binglogy:nightly-${{ steps.meta-info.outputs.sha }}
+            laobinghu/binglogy:nightly
+            laobinghu/binglogy:nightly-${{ steps.meta-info.outputs.date }}
+            laobinghu/binglogy:nightly-${{ steps.meta-info.outputs.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+
+      - name: Upload nightly tarball as artifact
+        if: matrix.platform == 'linux/amd64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: binglogy-nightly-tarball
+          path: dist/binglogy-nightly-*.tar.gz
+          retention-days: 7

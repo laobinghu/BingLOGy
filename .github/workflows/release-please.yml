@@ -1,0 +1,32 @@
+name: release-please
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - name: release-please
+        id: release
+        uses: googleapis/release-please-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          release-type: php
+          package-name: binglogy
+          changelog-path: CHANGELOG.md
+          include-v-in-tag: true
+          versioning-strategy: default
+
+      - name: log result
+        if: steps.release.outputs.release-created == 'true'
+        run: |
+          echo "::notice title=Release created::Tag ${{ steps.release.outputs.tag-name }}"
+          echo "::notice title=Release URL::${{ steps.release.outputs.html-url }}"
