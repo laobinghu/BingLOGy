@@ -19,6 +19,8 @@ permissions:
   contents: write
   packages: write
   pull-requests: write
+  id-token: write
+  attestations: write
 
 jobs:
   release:
@@ -120,6 +122,7 @@ jobs:
             type=raw,value=${{ steps.ver.outputs.major }}
 
       - name: Build & push Docker image
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -130,6 +133,14 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: false
+
+      - name: Attest build provenance (ghcr.io)
+        if: matrix.platform == 'linux/amd64'
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-name: ghcr.io/laobinghu/binglogy
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
 
       - name: Upload tarball to GitHub Release
         if: matrix.platform == 'linux/amd64'

@@ -9,6 +9,8 @@ on:
 permissions:
   contents: read
   packages: write
+  id-token: write
+  attestations: write
 
 jobs:
   nightly:
@@ -88,6 +90,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build & push nightly Docker image
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -103,6 +106,14 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: false
+
+      - name: Attest build provenance (ghcr.io)
+        if: matrix.platform == 'linux/amd64'
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-name: ghcr.io/laobinghu/binglogy
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
 
       - name: Upload nightly tarball as artifact
         if: matrix.platform == 'linux/amd64'
