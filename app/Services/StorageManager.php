@@ -10,11 +10,37 @@ class StorageManager
 {
     public static function registerDisks(): void
     {
-        $disks = StorageDisk::where('is_available', true)->get();
+        try {
+            $disks = StorageDisk::where('is_available', true)->get();
+        } catch (\Throwable $e) {
+            return;
+        }
 
         foreach ($disks as $disk) {
-            static::registerDisk($disk);
+            try {
+                static::registerDisk($disk);
+            } catch (\Throwable $e) {
+                logger()->warning("StorageManager: failed to register disk [{$disk->name}]: {$e->getMessage()}");
+            }
         }
+    }
+
+    public static function registerDisk(StorageDisk $disk): void
+    {
+        $config = $disk->config;
+
+        $diskConfig = match ($disk->driver) {
+            'local' => [
+                'driver' => 'local',
+                'root' => $config['path'] ?? storage_path('app/public'),
+            ],
+            'oss' => throw new \InvalidArgumentException('OSS driver is not implemented yet.'),
+            'cos' => throw new \InvalidArgumentException('COS driver is not implemented yet.'),
+            's3' => throw new \InvalidArgumentException('S3 driver is not implemented yet.'),
+            default => throw new \InvalidArgumentException("Unsupported driver: {$disk->driver}"),
+        };
+
+        config(["filesystems.disks.{$disk->name}" => $diskConfig]);
     }
 
     public static function disk(?string $name = null): FilesystemAdapter
@@ -35,57 +61,5 @@ class StorageManager
             ->orderBy('name')
             ->pluck('name', 'id')
             ->all();
-    }
-
-    public static function registerDisk(StorageDisk $disk): void
-    {
-        $config = $disk->config;
-
-        $diskConfig = match ($disk->driver) {
-            'local' => [
-                'driver' => 'local',
-                'root' => $config['path'] ?? storage_path('app/public'),
-            ],
-            'oss' => [
-                'driver' => 'oss',
-                'access_key_id' => $config['access_key_id'] ?? '',
-                'access_key_secret' => $config['access_key_secret'] ?? '',
-                'bucket' => $config['bucket'] ?? '',
-                'endpoint' => $config['endpoint'] ?? '',
-                'use_cdn' => $config['use_cdn'] ?? false,
-                'cdn_domain' => $config['cdn_domain'] ?? '',
-            ],
-            'cos' => [
-                'driver' => 'cos',
-                'secret_id' => $config['secret_id'] ?? '',
-                'secret_key' => $config['secret_key'] ?? '',
-                'bucket' => $config['bucket'] ?? '',
-                'region' => $config['region'] ?? '',
-                'use_cdn' => $config['use_cdn'] ?? false,
-                'cdn_domain' => $config['cdn_domain'] ?? '',
-            ],
-            's3' => [
-                'driver' => 's3',
-                'key' => $config['access_key_id'] ?? '',
-                'secret' => $config['access_key_secret'] ?? '',
-                'bucket' => $config['bucket'] ?? '',
-                'region' => $config['region'] ?? '',
-                'endpoint' => $config['endpoint'] ?? '',
-                'use_path_style_endpoint' => $config['use_path_style'] ?? false,
-            ],
-            default => throw new \InvalidArgumentException("Unsupported driver: {$disk->driver}"),
-        };
-
-        Storage::extend($disk->name, function ($app, $configOverride) use ($diskConfig) {
-            $finalConfig = array_merge($diskConfig, $configOverride ?? []);
-
-            return match ($diskConfig['driver']) {
-                'local' => new \Illuminate\Filesystem\FilesystemAdapter(
-                    new \Illuminate\Filesystem\LocalFilesystem,
-                    new \League\Flysystem\Local\LocalFilesystemAdapter($finalConfig['root']),
-                ),
-                default => \Illuminate\Support\Facades\Storage::build($finalConfig),
-            };
-        });
     }
 }

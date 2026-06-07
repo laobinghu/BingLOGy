@@ -5,7 +5,7 @@
 - [x] Migration: `create_tags_table`（id, name, slug）
 - [x] Migration: `create_post_tag_table`（post_id, tag_id）
 - [x] 新建 `app/Models/Tag.php`
-- [x] `Post.php` 加 `belongsToMany(Tag::class)`  + `tags()` 关系
+- [x] `Post.php` 加 `belongsToMany(Tag::class)` + `tags()` 关系
 - [x] `PostController@store` / `@update` 同步标签
 - [x] 后台 create/edit 表单加多选标签
 - [x] `PostController@index` 接受 `tag` 参数筛选
@@ -24,7 +24,7 @@
 
 - [x] Migration: `posts` 表加 `cover_image` 列（nullable string）
 - [x] `php artisan storage:link`
-- [x] 后台 create/edit 加 file input（type=file, accept=image/*）
+- [x] 后台 create/edit 加 file input（type=file, accept=image/\*）
 - [x] `PostController@store` / `@update` 处理上传，存 `storage/app/public/covers/`
 - [x] 前台特色大卡显示封面图
 - [x] 前台时间线卡片显示小封面缩略图

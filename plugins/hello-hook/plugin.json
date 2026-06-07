@@ -1,0 +1,13 @@
+{
+    "name": "hello-hook",
+    "title": "Hello Hook",
+    "version": "1.0.0",
+    "description": "验证 HookManager 是否正常工作的示例插件",
+    "author": "BingLOGy",
+    "requires": {
+        "binglogy": "^1.0"
+    },
+    "hooks": {
+        "post.show.head": 10
+    }
+}

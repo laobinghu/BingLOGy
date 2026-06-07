@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 
 class Post extends Model
 {
-    protected $fillable = ['user_id', 'title', 'slug', 'body', 'excerpt', 'published_at', 'cover_image', 'views'];
+    protected $fillable = ['user_id', 'title', 'slug', 'body', 'excerpt', 'meta', 'published_at', 'cover_image', 'views'];
 
     protected static function booted(): void
     {
@@ -33,6 +33,7 @@ class Post extends Model
     {
         return [
             'published_at' => 'datetime',
+            'meta' => 'array',
         ];
     }
 }

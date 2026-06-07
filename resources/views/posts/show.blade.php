@@ -37,20 +37,35 @@
                 </p>
             @endif
 
-            @if ($post->tags->isNotEmpty())
-                <div class="mt-5 flex flex-wrap gap-1.5">
-                    @foreach ($post->tags as $tag)
-                        <a href="{{ route('posts.index', ['tag' => $tag->slug]) }}"
-                           class="rounded-full bg-stone-200/60 px-2.5 py-0.5 text-[11px] font-medium text-stone-600 transition hover:bg-stone-300/60 dark:bg-stone-800 dark:text-stone-400 dark:hover:bg-stone-700">
-                            {{ $tag->name }}
-                        </a>
-                    @endforeach
-                </div>
-            @endif
+        @if ($post->tags->isNotEmpty())
+            <div class="mt-5 flex flex-wrap gap-1.5">
+                @foreach ($post->tags as $tag)
+                    <a href="{{ route('posts.index', ['tag' => $tag->slug]) }}"
+                       class="rounded-full bg-stone-200/60 px-2.5 py-0.5 text-[11px] font-medium text-stone-600 transition hover:bg-stone-300/60 dark:bg-stone-800 dark:text-stone-400 dark:hover:bg-stone-700">
+                        {{ $tag->name }}
+                    </a>
+                @endforeach
+            </div>
+        @endif
         </header>
 
-        <div class="prose prose-stone dark:prose-invert mt-10 max-w-none">
-            {!! \App\Support\PostPresenter::bodyHtml($post) !!}
+        @php
+            $tocHtml = \App\Support\Markdown::toToc($post->body ?? '');
+        @endphp
+
+        <div class="mt-10 grid gap-8 lg:grid-cols-[1fr,220px]">
+            <div class="prose prose-stone dark:prose-invert max-w-none">
+                {!! \App\Services\HookManager::applyFilters('post.content.render', \App\Support\PostPresenter::bodyHtml($post), $post) !!}
+            </div>
+
+            @if (trim($tocHtml) !== '')
+                <aside class="hidden lg:block">
+                    <div class="sticky top-24 rounded-2xl border border-stone-200/70 bg-paper-soft p-4 text-sm dark:border-stone-700/60 dark:bg-stone-900/40">
+                        <p class="mb-2 text-xs font-semibold tracking-[0.22em] text-stone-500 uppercase dark:text-stone-400">目录</p>
+                        {!! $tocHtml !!}
+                    </div>
+                </aside>
+            @endif
         </div>
 
         <footer class="mt-16 border-t border-stone-300/70 pt-8 text-sm dark:border-stone-700/60">
@@ -64,4 +79,33 @@
             </div>
         </footer>
     </article>
+
+    <section class="mx-auto max-w-3xl px-6 pb-16">
+        <h2 class="text-lg font-semibold tracking-tight text-stone-950 dark:text-stone-50">
+            评论 ({{ $comments->count() }})
+        </h2>
+
+        @if (session('success'))
+            <div class="mt-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 dark:border-green-800 dark:bg-green-900/30 dark:text-green-400">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        <form method="POST" action="{{ route('comments.store', $post) }}" class="mt-4 space-y-3 rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-700 dark:bg-stone-900/50">
+            @csrf
+            <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <input type="text" name="name" placeholder="昵称" required
+                       class="rounded border border-stone-200 px-3 py-2 text-sm dark:border-stone-700 dark:bg-stone-800">
+                <input type="email" name="email" placeholder="邮箱（可选）"
+                       class="rounded border border-stone-200 px-3 py-2 text-sm dark:border-stone-700 dark:bg-stone-800">
+            </div>
+            <textarea name="body" rows="3" required placeholder="说点什么..."
+                      class="w-full rounded border border-stone-200 px-3 py-2 text-sm dark:border-stone-700 dark:bg-stone-800"></textarea>
+            <button type="submit" class="rounded bg-stone-800 px-4 py-2 text-sm text-white hover:bg-stone-700 dark:bg-stone-200 dark:text-stone-800 dark:hover:bg-stone-300">
+                提交评论
+            </button>
+        </form>
+
+        <x-comments-tree :comments="$comments" :depth="0" />
+    </section>
 @endsection

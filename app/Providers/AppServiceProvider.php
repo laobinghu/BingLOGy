@@ -3,9 +3,11 @@
 namespace App\Providers;
 
 use App\Services\StorageManager;
+use App\Services\PluginManager;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -24,11 +26,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        try {
-            StorageManager::registerDisks();
-        } catch (\Throwable $e) {
-            // DB may not exist during first migration
-        }
+        StorageManager::registerDisks();
+        PluginManager::loadActivePlugins();
+
+        Gate::before(fn ($user, $ability) => $user->id === 1 ? true : null);
 
         $this->configureDefaults();
     }
