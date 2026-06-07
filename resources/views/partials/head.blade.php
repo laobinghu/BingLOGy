@@ -11,5 +11,18 @@
 <link rel="alternate" type="application/atom+xml" title="{{ config('app.name', 'BingLOGy') }}" href="{{ route('feed') }}">
 
 @fonts
-@vite(['resources/css/app.css', 'resources/js/app.js'])
+@vite(['resources/css/app.css'])
 @fluxAppearance
+
+@php
+    $customHead = \App\Services\SettingsManager::get('custom_head');
+@endphp
+@if (!empty($customHead))
+    {!! $customHead !!}
+@endif
+
+@isset($post)
+    @php
+        \App\Services\HookManager::doAction('post.show.head', $post);
+    @endphp
+@endisset

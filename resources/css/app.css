@@ -1,6 +1,7 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 @plugin "@tailwindcss/typography";
-@import '../../vendor/livewire/flux/dist/flux.css';
+@import "../../vendor/livewire/flux/dist/flux.css";
+@import "highlight.js/styles/github-dark.css";
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -10,7 +11,9 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans:
+        "Instrument Sans", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+        "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 
     --color-zinc-50: #fafafa;
     --color-zinc-100: #f5f5f5;
@@ -60,7 +63,6 @@
 }
 
 @layer base {
-
     *,
     ::after,
     ::before,
@@ -75,7 +77,7 @@
 }
 
 [data-flux-label] {
-    @apply  !mb-0 !leading-tight;
+    @apply !mb-0 !leading-tight;
 }
 
 input:focus[data-flux-control],
@@ -87,3 +89,197 @@ select:focus[data-flux-control] {
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
+
+@layer components {
+    .milkdown-host .ProseMirror {
+        @apply min-h-[420px] px-4 py-3 outline-none;
+    }
+    .milkdown-host .ProseMirror:focus {
+        @apply outline-none;
+    }
+    .milkdown-host .ProseMirror p.is-editor-empty:first-child::before {
+        @apply pointer-events-none float-left h-0 text-stone-400 content-[attr(data-placeholder)];
+    }
+    .milkdown-host .ProseMirror h1,
+    .milkdown-host .ProseMirror h2,
+    .milkdown-host .ProseMirror h3,
+    .milkdown-host .ProseMirror h4 {
+        @apply font-semibold tracking-tight;
+    }
+    .milkdown-host .ProseMirror h1 {
+        @apply mt-6 mb-3 text-3xl;
+    }
+    .milkdown-host .ProseMirror h2 {
+        @apply mt-5 mb-2 text-2xl;
+    }
+    .milkdown-host .ProseMirror h3 {
+        @apply mt-4 mb-2 text-xl;
+    }
+    .milkdown-host .ProseMirror p {
+        @apply my-2 leading-7;
+    }
+    .milkdown-host .ProseMirror ul,
+    .milkdown-host .ProseMirror ol {
+        @apply my-3 ml-6;
+    }
+    .milkdown-host .ProseMirror ul {
+        @apply list-disc;
+    }
+    .milkdown-host .ProseMirror ol {
+        @apply list-decimal;
+    }
+    .milkdown-host .ProseMirror blockquote {
+        @apply my-4 border-l-4 border-stone-300 pl-4 italic text-stone-600 dark:border-stone-600 dark:text-stone-400;
+    }
+    .milkdown-host .ProseMirror code {
+        @apply rounded bg-stone-200/60 px-1 py-0.5 text-sm dark:bg-stone-800 dark:text-stone-200;
+    }
+    .milkdown-host .ProseMirror pre {
+        @apply my-4 overflow-x-auto rounded-lg bg-stone-900 p-4 text-sm text-stone-50;
+    }
+    .milkdown-host .ProseMirror pre code {
+        @apply bg-transparent p-0 text-inherit;
+    }
+    .milkdown-host .ProseMirror a {
+        @apply text-blue-600 underline-offset-4 hover:underline dark:text-blue-400;
+    }
+    .milkdown-host .ProseMirror table {
+        @apply my-4 w-full border-collapse;
+    }
+    .milkdown-host .ProseMirror th,
+    .milkdown-host .ProseMirror td {
+        @apply border border-stone-300 px-3 py-1.5 dark:border-stone-700;
+    }
+    .milkdown-host .ProseMirror th {
+        @apply bg-stone-100 font-semibold dark:bg-stone-800;
+    }
+    .milkdown-host .ProseMirror img {
+        @apply my-4 max-w-full rounded-lg;
+    }
+    .milkdown-host .ProseMirror hr {
+        @apply my-6 border-stone-300 dark:border-stone-700;
+    }
+
+    .toc-list {
+        @apply my-4 space-y-1 text-sm;
+    }
+    .toc-list ul {
+        @apply ml-4 mt-1 space-y-1 border-l border-stone-200 pl-3 dark:border-stone-700;
+    }
+    .toc-list a {
+        @apply text-stone-600 transition hover:text-stone-950 dark:text-stone-400 dark:hover:text-stone-100;
+    }
+
+    .milkdown-slash-menu {
+        @apply pointer-events-none max-h-72 w-56 overflow-hidden rounded-lg border border-stone-200 bg-white opacity-0 shadow-lg transition-opacity duration-100;
+    }
+    .milkdown-slash-menu[data-show="true"] {
+        @apply pointer-events-auto opacity-100;
+    }
+    .milkdown-slash-menu__list {
+        @apply max-h-72 overflow-y-auto p-1;
+    }
+    .milkdown-slash-menu__item {
+        @apply flex w-full items-center gap-3 rounded-md px-2.5 py-1.5 text-left text-sm text-stone-700 transition;
+    }
+    .milkdown-slash-menu__item[data-active="true"] {
+        @apply bg-stone-100 text-stone-950;
+    }
+    .milkdown-slash-menu__hint {
+        @apply flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-stone-200 bg-stone-50 font-mono text-xs text-stone-500;
+    }
+    .milkdown-slash-menu[data-empty="true"]::after {
+        content: "无匹配项";
+        @apply block px-3 py-2 text-xs text-stone-400;
+    }
+
+    .milkdown-bubble-menu {
+        @apply pointer-events-none flex items-center gap-0.5 rounded-lg border border-stone-200 bg-white p-0.5 opacity-0 shadow-lg transition-opacity duration-100;
+    }
+    .milkdown-bubble-menu[data-show="true"] {
+        @apply pointer-events-auto opacity-100;
+    }
+    .milkdown-bubble-menu__item {
+        @apply flex h-7 min-w-7 cursor-pointer items-center justify-center rounded-md px-1.5 text-sm text-stone-700 transition hover:bg-stone-100;
+    }
+
+    .milkdown-host .ProseMirror[data-dragging="true"] {
+        @apply cursor-grabbing;
+    }
+
+    .prosemirror-drop-indicator {
+        @apply pointer-events-none fixed rounded-sm bg-blue-500;
+        height: 2px;
+    }
+
+    .milkdown-host .ProseMirror .gap-cursor::after {
+        @apply border-l-2 border-blue-500;
+    }
+
+    .milkdown-block-handle {
+        @apply flex h-6 w-6 cursor-grab items-center justify-center rounded-md text-stone-400 transition hover:bg-stone-100 hover:text-stone-700 active:cursor-grabbing;
+    }
+    .milkdown-block-handle::before {
+        content: "";
+        width: 12px;
+        height: 8px;
+        background-image: radial-gradient(circle, currentColor 1.2px, transparent 1.5px);
+        background-size: 4px 4px;
+        background-repeat: repeat;
+    }
+    html.dark .milkdown-block-handle {
+        @apply text-stone-500 hover:bg-stone-700 hover:text-stone-200;
+    }
+}
+
+.prose pre code.hljs {
+    @apply !bg-transparent;
+}
+
+html.dark .hljs {
+    color: #c9d1d9;
+    background: transparent;
+}
+html.dark .hljs-comment,
+html.dark .hljs-quote {
+    color: #8b949e;
+}
+html.dark .hljs-keyword,
+html.dark .hljs-selector-tag,
+html.dark .hljs-subst {
+    color: #ff7b72;
+}
+html.dark .hljs-string,
+html.dark .hljs-doctag {
+    color: #a5d6ff;
+}
+html.dark .hljs-title,
+html.dark .hljs-section,
+html.dark .hljs-selector-id {
+    color: #d2a8ff;
+}
+html.dark .hljs-number,
+html.dark .hljs-literal {
+    color: #79c0ff;
+}
+html.dark .hljs-built_in,
+html.dark .hljs-type {
+    color: #ffa657;
+}
+
+html.dark .milkdown-slash-menu,
+html.dark .milkdown-bubble-menu {
+    @apply border-stone-700 bg-stone-900;
+}
+html.dark .milkdown-slash-menu__item {
+    @apply text-stone-300;
+}
+html.dark .milkdown-slash-menu__item[data-active="true"] {
+    @apply bg-stone-800 text-stone-50;
+}
+html.dark .milkdown-slash-menu__hint {
+    @apply border-stone-700 bg-stone-800 text-stone-400;
+}
+html.dark .milkdown-bubble-menu__item {
+    @apply text-stone-300 hover:bg-stone-800;
+}

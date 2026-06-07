@@ -6,6 +6,7 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         @include('partials.head')
+        @vite(['resources/js/app.js'])
     </head>
     <body class="flex min-h-full flex-col bg-paper font-sans text-stone-900 antialiased dark:bg-stone-950 dark:text-stone-100">
         @include('partials.site-header')
