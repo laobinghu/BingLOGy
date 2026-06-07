@@ -81,6 +81,8 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
             'destroy' => 'posts.destroy',
         ]);
 
+    Route::post('posts/bulk', [PostController::class, 'bulk'])->name('posts.bulk');
+
     Route::get('tags', [TagController::class, 'index'])->name('tags.index');
     Route::post('tags', [TagController::class, 'store'])->name('tags.store');
     Route::put('tags/{tag}', [TagController::class, 'update'])->name('tags.update');

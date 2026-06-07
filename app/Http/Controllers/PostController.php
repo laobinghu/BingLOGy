@@ -51,13 +51,24 @@ class PostController extends Controller
     }
 
     // 后台管理
-    public function adminIndex(): View
+    public function adminIndex(Request $request): View
     {
-        $posts = Post::where('user_id', auth()->id())
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $status = $request->query('status', 'all');
 
-        return view('admin.posts.index', compact('posts'));
+        $query = Post::query();
+
+        if ($status === 'published') {
+            $query->whereNotNull('published_at')->where('published_at', '<=', now());
+        } elseif ($status === 'draft') {
+            $query->where(function ($q) {
+                $q->whereNull('published_at')->orWhere('published_at', '>', now());
+            });
+        }
+
+        $posts = $query->orderBy('created_at', 'desc')->get();
+        $posts->load('tags');
+
+        return view('admin.posts.index', compact('posts', 'status'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -73,9 +84,11 @@ class PostController extends Controller
 
         $validated['user_id'] = auth()->id();
 
-        if ($request->boolean('publish') && ! $request->filled('published_at')) {
-            $validated['published_at'] = now();
-        }
+        $validated['published_at'] = match ($request->input('publish_status')) {
+            'published' => now(),
+            'scheduled' => $request->date('published_at'),
+            default => null,
+        };
 
         if ($request->hasFile('cover_image')) {
             $validated['cover_image'] = app(UploadPolicyService::class)
@@ -99,7 +112,13 @@ class PostController extends Controller
     {
         $tags = Tag::orderBy('name')->get();
 
-        return view('admin.posts.edit', compact('post', 'tags'));
+        $publishStatus = match (true) {
+            $post->published_at && $post->published_at->isPast() => 'published',
+            $post->published_at && $post->published_at->isFuture() => 'scheduled',
+            default => 'draft',
+        };
+
+        return view('admin.posts.edit', compact('post', 'tags', 'publishStatus'));
     }
 
     public function update(Request $request, Post $post): RedirectResponse
@@ -132,9 +151,9 @@ class PostController extends Controller
 
         $post->fill($validated);
 
-        $post->published_at = match (true) {
-            $request->filled('published_at') => $request->date('published_at'),
-            $request->boolean('publish') => $post->published_at ?? now(),
+        $post->published_at = match ($request->input('publish_status')) {
+            'published' => $post->published_at ?? now(),
+            'scheduled' => $request->date('published_at'),
             default => null,
         };
 
@@ -160,6 +179,72 @@ class PostController extends Controller
         }
 
         $post->tags()->sync($request->input('tags', []));
+    }
+
+    public function bulk(Request $request): RedirectResponse
+    {
+        $ids = array_values(array_filter(array_map('intval', (array) $request->input('ids', []))));
+
+        if (empty($ids)) {
+            return back()->with('error', '未选择任何文章。');
+        }
+
+        $posts = Post::whereIn('id', $ids)->get();
+
+        if ($posts->isEmpty()) {
+            return back()->with('error', '未找到可操作的文章。');
+        }
+
+        $action = $request->input('action', '');
+
+        if ($action === 'publish') {
+            $posts->each(fn ($p) => $p->update(['published_at' => $p->published_at ?? now()]));
+            $label = '发布';
+        } elseif ($action === 'unpublish') {
+            $posts->each(fn ($p) => $p->update(['published_at' => null]));
+            $label = '撤销发布';
+        } elseif ($action === 'delete') {
+            $posts->each(function ($p) {
+                if ($p->cover_image) {
+                    app(UploadPolicyService::class)->delete($p->cover_image, 'cover_image');
+                }
+                $p->delete();
+            });
+            $label = '删除';
+        } elseif (in_array($action, ['tags_append', 'tags_replace', 'tags_remove'], true)) {
+            $tagNames = array_values(array_filter(array_map('trim', preg_split('/[,，]/u', (string) $request->input('tags', '')) ?: [])));
+
+            if (empty($tagNames)) {
+                return back()->with('error', '标签操作需要填写标签名，逗号分隔。');
+            }
+
+            $tagIds = [];
+            foreach ($tagNames as $name) {
+                $slug = Str::slug($name);
+                $tag = Tag::firstOrCreate(['slug' => $slug], ['name' => $name]);
+                $tagIds[] = $tag->id;
+            }
+
+            $posts->load('tags');
+
+            if ($action === 'tags_replace') {
+                $posts->each(fn ($p) => $p->tags()->sync($tagIds));
+                $label = '替换标签';
+            } elseif ($action === 'tags_remove') {
+                $posts->each(function ($p) use ($tagIds) {
+                    $keep = $p->tags()->pluck('tags.id')->diff($tagIds)->values()->all();
+                    $p->tags()->sync($keep);
+                });
+                $label = '移除标签';
+            } else {
+                $posts->each(fn ($p) => $p->tags()->attach(array_diff($tagIds, $p->tags()->pluck('tags.id')->all())));
+                $label = '追加标签';
+            }
+        } else {
+            return back()->with('error', '未知批量操作。');
+        }
+
+        return back()->with('success', '已'.$label.' '.$posts->count().' 篇文章。');
     }
 
     public function destroy(Post $post): RedirectResponse

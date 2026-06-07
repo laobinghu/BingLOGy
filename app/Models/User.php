@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -21,9 +21,6 @@ class User extends Authenticatable implements PasskeyUser
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
-    /**
-     * Get the user's initials
-     */
     public function initials(): string
     {
         return Str::of($this->name)
@@ -33,11 +30,40 @@ class User extends Authenticatable implements PasskeyUser
             ->implode('');
     }
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class, 'role_user');
+    }
+
+    public function hasRole(string|Role $role): bool
+    {
+        $name = $role instanceof Role ? $role->name : $role;
+
+        return $this->roles->contains(fn (Role $r) => $r->name === $name);
+    }
+
+    public function assignRole(string|Role $role): void
+    {
+        $model = $role instanceof Role ? $role : Role::firstOrCreate(
+            ['name' => $role],
+            ['label' => Str::headline($role)],
+        );
+
+        $this->roles()->syncWithoutDetaching([$model->id]);
+    }
+
+    public function removeRole(string|Role $role): void
+    {
+        $name = $role instanceof Role ? $role->name : $role;
+
+        $this->roles()->where('name', $name)->detach();
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('admin');
+    }
+
     protected function casts(): array
     {
         return [
