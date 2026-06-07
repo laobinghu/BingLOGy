@@ -183,7 +183,7 @@ new #[Title('Security settings')] class extends Component {
 }; ?>
 
 <section class="w-full">
-    @include('partials.settings-heading')
+    @include('components.settings-heading')
 
     <flux:heading class="sr-only">{{ __('Security settings') }}</flux:heading>
 

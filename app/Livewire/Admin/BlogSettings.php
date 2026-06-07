@@ -140,6 +140,6 @@ class BlogSettings extends Component
 
     public function render()
     {
-        return view('livewire.admin.blog-settings');
+        return view('admin.blog-settings');
     }
 }

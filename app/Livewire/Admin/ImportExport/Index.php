@@ -216,7 +216,7 @@ class Index extends Component
 
         $allTags = \App\Models\Tag::orderBy('name')->get();
 
-        return view('livewire.admin.import-export.index', [
+        return view('admin.import-export.index', [
             'exportable' => $exportable,
             'allTags' => $allTags,
         ]);

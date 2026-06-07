@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
     <head>
-        @include('partials.head')
+        @include('components.head')
         <title>{{ $title ?? '后台' }} - {{ config('app.name', 'BingLOGy') }}</title>
         @livewireStyles
     </head>
     <body class="min-h-screen bg-white dark:bg-zinc-800">
-        @include('partials.admin-sidebar')
+        @include('components.admin-sidebar')
 
         <flux:header class="lg:hidden">
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />

@@ -32,7 +32,7 @@
 
         <div class="mt-4">
             @if ($posts->isNotEmpty())
-                @include('partials.post-timeline', [
+                @include('components.post-timeline', [
                     'groups' => \App\Support\PostPresenter::groupByYear($posts->getCollection()),
                 ])
 

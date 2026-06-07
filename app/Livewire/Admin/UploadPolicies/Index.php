@@ -249,7 +249,7 @@ class Index extends Component
 
         $fileCount = count(array_filter(Storage::disk('public')->allFiles(), fn ($f) => basename($f) !== '.gitignore'));
 
-        return view('livewire.admin.upload-policies.index', compact(
+        return view('admin.upload-policies.index', compact(
             'policies', 'strategies', 'policyCounts', 'strategyCounts',
             'files', 'allPolicies', 'fileCount'
         ));

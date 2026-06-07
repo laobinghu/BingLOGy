@@ -51,6 +51,6 @@ class CommentController extends Controller
             ->orderBy('created_at', 'asc')
             ->get();
 
-        return view('partials.comments-tree', ['comments' => $comments]);
+        return view('components.comments-tree', ['comments' => $comments]);
     }
 }

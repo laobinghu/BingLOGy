@@ -21,7 +21,7 @@ Route::middleware('check.maintenance')->group(function () {
 
         $featured = $posts->shift();
 
-        return view('welcome', compact('posts', 'featured'));
+        return view('pages.welcome', compact('posts', 'featured'));
     })->name('home');
 
     Route::get('/feed', function () {
@@ -33,7 +33,7 @@ Route::middleware('check.maintenance')->group(function () {
             ->get();
 
         return response()
-            ->view('feed', ['posts' => $posts])
+            ->view('pages.feed', ['posts' => $posts])
             ->header('Content-Type', 'application/atom+xml; charset=UTF-8');
     })->name('feed');
 
@@ -44,7 +44,7 @@ Route::middleware('check.maintenance')->group(function () {
             ->get();
 
         return response()
-            ->view('sitemap', ['posts' => $posts])
+            ->view('pages.sitemap', ['posts' => $posts])
             ->header('Content-Type', 'application/xml; charset=UTF-8');
     })->name('sitemap');
 
@@ -66,7 +66,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
             ->take(5)
             ->get();
 
-        return view('dashboard', compact('totalPosts', 'publishedPosts', 'draftPosts', 'recentPosts'));
+        return view('pages.dashboard', compact('totalPosts', 'publishedPosts', 'draftPosts', 'recentPosts'));
     })->name('index');
 
     Route::get('posts', [PostController::class, 'adminIndex'])->name('posts.index');

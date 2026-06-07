@@ -29,7 +29,7 @@ class Index extends Component
             ];
         })->sortBy('title')->values()->all();
 
-        return view('livewire.admin.plugins.index', compact('plugins'))
+        return view('admin.plugins.index', compact('plugins'))
             ->layout('layouts.app', ['title' => '插件管理']);
     }
 

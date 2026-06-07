@@ -54,7 +54,7 @@ class Index extends Component
             'spam' => Comment::where('status', 'spam')->count(),
         ];
 
-        return view('livewire.admin.comments.index', [
+        return view('admin.comments.index', [
             'comments' => $query->get(),
             'counts' => $counts,
         ]);

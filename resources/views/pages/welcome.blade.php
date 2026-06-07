@@ -16,7 +16,7 @@
 
         @if ($featured)
             <section class="mt-14">
-                @include('partials.post-card-featured', ['post' => $featured])
+                @include('components.post-card-featured', ['post' => $featured])
             </section>
         @endif
 
@@ -41,7 +41,7 @@
 
             <div class="mt-8">
                 @if ($posts->isNotEmpty())
-                    @include('partials.post-timeline', ['groups' => \App\Support\PostPresenter::groupByYear($posts)])
+                    @include('components.post-timeline', ['groups' => \App\Support\PostPresenter::groupByYear($posts)])
                 @elseif (! $featured)
                     <div class="rounded-[2rem] border border-dashed border-stone-300/80 bg-paper-soft p-10 text-center dark:border-stone-700/60 dark:bg-stone-900/40">
                         <p class="text-sm font-medium tracking-[0.22em] text-stone-500 uppercase dark:text-stone-400">

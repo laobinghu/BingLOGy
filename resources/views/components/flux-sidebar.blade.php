@@ -18,7 +18,7 @@
                 :expanded="!($group['default_collapsed'] ?? false)"
             >
                 @foreach ($group['items'] as $item)
-                    @include('livewire.partials.sidebar-item', ['item' => $item, 'groupHeading' => $group['heading']])
+                    @include('components.sidebar-item', ['item' => $item, 'groupHeading' => $group['heading']])
                 @endforeach
             </flux:sidebar.group>
         @endforeach

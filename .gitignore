@@ -28,3 +28,7 @@ yarn-error.log
 **/caddy
 frankenphp
 frankenphp-worker.php
+nul
+/.agent/
+/.codewhale/
+/.vite-hooks/

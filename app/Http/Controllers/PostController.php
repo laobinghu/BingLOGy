@@ -30,7 +30,7 @@ class PostController extends Controller
         $posts = $query->orderBy('published_at', 'desc')->paginate((int) $perPage);
         $allTags = Tag::withCount('posts')->orderBy('name')->get();
 
-        return view('posts.index', compact('posts', 'allTags'));
+        return view('pages.posts.index', compact('posts', 'allTags'));
     }
 
     public function show(Post $post): View
@@ -47,7 +47,7 @@ class PostController extends Controller
             ->orderBy('created_at', 'asc')
             ->get();
 
-        return view('posts.show', compact('post', 'comments'));
+        return view('pages.posts.show', compact('post', 'comments'));
     }
 
     // 后台管理

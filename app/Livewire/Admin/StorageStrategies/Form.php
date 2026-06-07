@@ -103,6 +103,6 @@ class Form extends Component
 
     public function render()
     {
-        return view('livewire.admin.storage-strategies.form');
+        return view('admin.storage-strategies.form');
     }
 }

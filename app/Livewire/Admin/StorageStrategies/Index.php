@@ -13,7 +13,7 @@ class Index extends Component
     {
         $strategies = StorageStrategy::orderBy('key')->get();
 
-        return view('livewire.admin.storage-strategies.index', compact('strategies'));
+        return view('admin.storage-strategies.index', compact('strategies'));
     }
 
     public function toggle(string $key): void

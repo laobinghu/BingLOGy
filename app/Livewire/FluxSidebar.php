@@ -24,6 +24,6 @@ class FluxSidebar extends Component
 
     public function render()
     {
-        return view('livewire.flux-sidebar');
+        return view('components.flux-sidebar');
     }
 }

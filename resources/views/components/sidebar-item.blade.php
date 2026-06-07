@@ -26,7 +26,7 @@
 
     <flux:sidebar.nav class="ml-6 mt-1 space-y-0.5 border-l border-zinc-200 dark:border-zinc-700 pl-3">
         @foreach ($children as $child)
-            @include('livewire.partials.sidebar-item', ['item' => $child])
+            @include('components.sidebar-item', ['item' => $child])
         @endforeach
     </flux:sidebar.nav>
 @else

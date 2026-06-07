@@ -13,7 +13,7 @@ class CheckMaintenanceMode
     {
         if (SettingsManager::get('maintenance_mode', false)) {
             if (! $request->user()) {
-                return response()->view('maintenance');
+                return response()->view('pages.maintenance');
             }
         }
 
