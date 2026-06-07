@@ -7,6 +7,8 @@ FROM composer:2 AS vendor
 
 WORKDIR /app
 
+RUN docker-php-ext-install pcntl
+
 COPY composer.json composer.lock ./
 
 RUN --mount=type=cache,target=/root/.composer/cache \
