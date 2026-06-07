@@ -28,6 +28,9 @@ class Index extends Component
 
     public array $selected = [];
 
+    /** @var array<int, array<int, string>> Tags per row, user-toggleable in preview. */
+    public array $selectedTags = [];
+
     public bool $publishOnImport = false;
 
     public function mount(?string $tab = null, ?string $raw = null): void
@@ -59,6 +62,7 @@ class Index extends Component
         if (trim($this->rawPaste) === '') {
             $this->parsed = [];
             $this->selected = [];
+            $this->selectedTags = [];
 
             return;
         }
@@ -129,7 +133,11 @@ class Index extends Component
                 continue;
             }
 
-            [$ok] = $importer->create($result, $this->publishOnImport);
+            [$ok] = $importer->create(
+                $result,
+                $this->publishOnImport,
+                $this->selectedTags[$key] ?? $payload['tags'],
+            );
             if ($ok) {
                 $created++;
             } else {
@@ -139,6 +147,7 @@ class Index extends Component
 
         $this->parsed = [];
         $this->selected = [];
+        $this->selectedTags = [];
 
         $message = "导入完成：成功 {$created} 篇，跳过 {$skipped} 篇。";
         if (! empty($errors)) {
@@ -165,6 +174,36 @@ class Index extends Component
             array_keys($this->parsed),
             $this->parsed,
         )));
+
+        $this->selectedTags = [];
+        foreach ($this->parsed as $i => $row) {
+            $this->selectedTags[$i] = array_values($row['tags'] ?? []);
+        }
+    }
+
+    public function toggleTag(int $rowIndex, string $tag): void
+    {
+        $current = $this->selectedTags[$rowIndex] ?? [];
+        $key = array_search($tag, $current, true);
+        if ($key === false) {
+            $current[] = $tag;
+        } else {
+            unset($current[$key]);
+        }
+        $this->selectedTags[$rowIndex] = array_values($current);
+    }
+
+    public function addTagToRow(int $rowIndex, string $tag): void
+    {
+        $tag = trim($tag);
+        if ($tag === '') {
+            return;
+        }
+        $current = $this->selectedTags[$rowIndex] ?? [];
+        if (! in_array($tag, $current, true)) {
+            $current[] = $tag;
+        }
+        $this->selectedTags[$rowIndex] = $current;
     }
 
     public function render()
@@ -175,8 +214,11 @@ class Index extends Component
             ->limit(200)
             ->get();
 
+        $allTags = \App\Models\Tag::orderBy('name')->get();
+
         return view('livewire.admin.import-export.index', [
             'exportable' => $exportable,
+            'allTags' => $allTags,
         ]);
     }
 

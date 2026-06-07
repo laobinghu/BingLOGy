@@ -67,6 +67,23 @@ class FrontMatterTest extends TestCase
         $this->assertSame('2026-06-07 12:30', $meta['date']->format('Y-m-d H:i'));
     }
 
+    public function test_normalize_does_not_misparse_iso8601_timestamp_as_unix_string(): void
+    {
+        [$meta] = FrontMatter::split("---\ndate: 2024-06-17T00:30:03.000Z\nupdated: 2026-01-05T03:51:03.064Z\n---\n");
+
+        $this->assertInstanceOf(\DateTimeInterface::class, $meta['date']);
+        $this->assertSame('2024-06-17', $meta['date']->format('Y-m-d'));
+        $this->assertSame('2026-01-05', $meta['updated']->format('Y-m-d'));
+    }
+
+    public function test_normalize_parses_numeric_timestamp_as_unix_ts(): void
+    {
+        [$meta] = FrontMatter::split("---\ndate: 1718584203\n---\n");
+
+        $this->assertInstanceOf(Carbon::class, $meta['date']);
+        $this->assertSame('2024-06-17', $meta['date']->format('Y-m-d'));
+    }
+
     public function test_normalize_coerces_published_string(): void
     {
         [$meta] = FrontMatter::split("---\npublished: true\n---\n");

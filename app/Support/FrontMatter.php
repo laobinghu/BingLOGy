@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Symfony\Component\Yaml\Yaml;
 
 class FrontMatter
@@ -50,7 +51,7 @@ class FrontMatter
         $body = ltrim($body, "\n\r");
 
         try {
-            $parsed = Yaml::parse($yamlBlock) ?? [];
+            $parsed = Yaml::parse($yamlBlock, Yaml::PARSE_DATETIME) ?? [];
         } catch (\Throwable) {
             $parsed = [];
         }
@@ -128,12 +129,20 @@ class FrontMatter
             $out[$lower] = $value;
         }
 
-        if (isset($out['date']) && ! $out['date'] instanceof \DateTimeInterface) {
+        if (! isset($out['date'])) {
+            // nothing to normalize
+        } elseif (! $out['date'] instanceof \DateTimeInterface) {
             try {
-                $out['date'] = Carbon::parse((string) $out['date']);
+                if (is_int($out['date']) || (is_string($out['date']) && ctype_digit(ltrim($out['date'], '-')))) {
+                    $out['date'] = Carbon::createFromTimestamp((int) $out['date']);
+                } else {
+                    $out['date'] = Carbon::parse((string) $out['date']);
+                }
             } catch (\Throwable) {
                 unset($out['date']);
             }
+        } elseif (! $out['date'] instanceof CarbonImmutable) {
+            $out['date'] = CarbonImmutable::createFromInterface($out['date']);
         }
 
         if (isset($out['tags'])) {

@@ -74,9 +74,11 @@ class PostImporter
     /**
      * Persist a parsed result as a Post (always as draft by default).
      *
+     * @param  array<int, string>|null  $tags  override the tag list (e.g. user-toggled in preview);
+     *                                         pass null to use whatever the front matter declared.
      * @return array{0: bool, 1: ?Post, 2: array<int, string>}
      */
-    public function create(PostImportResult $result, bool $publish = false): array
+    public function create(PostImportResult $result, bool $publish = false, ?array $tags = null): array
     {
         if ($result->hasErrors()) {
             return [false, null, $result->errors];
@@ -86,7 +88,7 @@ class PostImporter
             return [false, null, ['缺少 title 字段。']];
         }
 
-        return DB::transaction(function () use ($result, $publish) {
+        return DB::transaction(function () use ($result, $publish, $tags) {
             $slug = $this->resolveSlug($result);
 
             $post = Post::create([
@@ -102,7 +104,7 @@ class PostImporter
                 'meta' => $result->extraMeta(),
             ]);
 
-            $this->syncTags($post, $result->tags());
+            $this->syncTags($post, $tags ?? $result->tags());
 
             return [true, $post, []];
         });

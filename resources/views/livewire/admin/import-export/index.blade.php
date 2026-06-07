@@ -131,13 +131,32 @@
                                         <span class="text-xs text-stone-500">· {{ $row['date'] }}</span>
                                     @endif
                                 </div>
-                                @if (! empty($row['tags']))
-                                    <div class="flex flex-wrap gap-1">
-                                        @foreach ($row['tags'] as $tag)
-                                            <span class="rounded-full bg-stone-200/60 px-2 py-0.5 text-[11px] text-stone-600 dark:bg-stone-800 dark:text-stone-300">{{ $tag }}</span>
-                                        @endforeach
-                                    </div>
-                                @endif
+                @php $rowTags = $selectedTags[$i] ?? ($row['tags'] ?? []); @endphp
+                @if (! empty($rowTags))
+                  <div class="flex flex-wrap gap-1">
+                    @foreach ($rowTags as $tag)
+                      @php $checked = in_array($tag, $rowTags, true) ? 'checked' : ''; @endphp
+                      <label class="flex cursor-pointer items-center gap-1 rounded-full border border-neutral-200 px-2 py-0.5 text-[11px] dark:border-neutral-700">
+                        <input
+                          type="checkbox"
+                          value="{{ $tag }}"
+                          wire:model="selectedTags.{{ $i }}"
+                          {{ $checked }}
+                        >
+                        <span>{{ $tag }}</span>
+                      </label>
+                    @endforeach
+                  </div>
+                @endif
+
+                <div class="flex items-center gap-1">
+                  <input
+                    type="text"
+                    placeholder="新增标签，回车确认..."
+                    class="w-40 rounded border border-neutral-200 px-2 py-1 text-xs dark:border-neutral-700 dark:bg-stone-900"
+                    wire:keydown.enter.prevent="$wire.addTagToRow({{ $i }}, $event.target.value); $event.target.value = ''"
+                  >
+                </div>
                                 @if (! empty($row['excerpt']))
                                     <p class="text-xs text-stone-500">摘要：{{ $row['excerpt'] }}</p>
                                 @endif
