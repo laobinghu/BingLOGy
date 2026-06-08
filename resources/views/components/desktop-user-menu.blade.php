@@ -31,9 +31,9 @@
                     class="w-full cursor-pointer"
                     data-test="logout-button"
                 >
-                    退出登�?                </flux:menu.item>
+                    退出登录
+                </flux:menu.item>
             </form>
         </flux:menu.radio.group>
     </flux:menu>
 </flux:dropdown>
-

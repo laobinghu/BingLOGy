@@ -11,7 +11,8 @@
 
             <flux:navbar class="-mb-px max-lg:hidden">
                 <flux:navbar.item icon="layout-grid" :href="route('admin.index')" :current="request()->routeIs('admin.index')" wire:navigate>
-                    仪表�?                </flux:navbar.item>
+                    仪表盘
+                </flux:navbar.item>
             </flux:navbar>
 
             <flux:spacer />
@@ -53,7 +54,8 @@
             <flux:sidebar.nav>
                 <flux:sidebar.group :heading="__('平台')">
                     <flux:sidebar.item icon="layout-grid" :href="route('admin.index')" :current="request()->routeIs('admin.index')" wire:navigate>
-                        仪表�?                    </flux:sidebar.item>
+                        仪表盘
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 
@@ -80,4 +82,3 @@
         @fluxScripts
     </body>
 </html>
-
