@@ -3,7 +3,7 @@
 return [
     'groups' => [
         [
-            'heading' => 'Platform',
+            'heading' => '平台',
             'collapsible' => true,
             'default_collapsed' => false,
             'items' => [
@@ -74,9 +74,9 @@ return [
             ],
         ],
         [
-            'heading' => 'Monitoring',
+            'heading' => '监控',
             'collapsible' => true,
-            'default_collapsed' => false,
+            'default_collapsed' => true,
             'items' => [
                 [
                     'label' => 'Horizon',
