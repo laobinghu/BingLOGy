@@ -1,30 +1,6 @@
 <?php
 
 return [
-    /*
-    |--------------------------------------------------------------------------
-    | 后台侧边栏菜单配置
-    |--------------------------------------------------------------------------
-    |
-    | 结构说明：
-    | - groups: 菜单分组数组
-    |   - heading: 分组标题（支持翻译 __()）
-    |   - collapsible: 是否可折叠
-    |   - default_collapsed: 默认折叠状态
-    |   - items: 菜单项数组
-    |     - label: 显示文本（支持翻译）
-    |     - icon: Heroicons 图标名称
-    |     - route: 命名路由
-    |     - url: 外部链接（与 route 二选一）
-    |     - permission: 权限标识（spatie/laravel-permission）
-    |     - current: 当前激活路由匹配模式
-    |     - children: 子菜单（支持多级嵌套）
-    |     - badge: 徽标内容（数字/字符串/闭包）
-    |     - target: 链接目标 _blank 等
-    |     - order: 排序权重（数值越小越靠前）
-    |
-    */
-
     'groups' => [
         [
             'heading' => 'Platform',
@@ -40,28 +16,20 @@ return [
                     'order' => 1,
                 ],
                 [
-                    'label' => '文章管理',
-                    'icon' => 'document-text',
-                    'route' => 'admin.posts.index',
-                    'permission' => 'admin.posts.view',
-                    'current' => 'admin.posts.*',
-                    'order' => 2,
-                ],
-                [
-                    'label' => '上传管理',
-                    'icon' => 'arrow-up',
-                    'route' => 'admin.upload-policies.index',
-                    'permission' => 'admin.upload.view',
-                    'current' => 'admin.upload-policies.*',
-                    'order' => 3,
-                ],
-                [
                     'label' => '博客设置',
                     'icon' => 'cog-6-tooth',
                     'route' => 'admin.settings.blog',
                     'permission' => 'admin.settings.view',
                     'current' => 'admin.settings.*',
-                    'order' => 4,
+                    'order' => 2,
+                ],
+                [
+                    'label' => '文章管理',
+                    'icon' => 'document-text',
+                    'route' => 'admin.posts.index',
+                    'permission' => 'admin.posts.view',
+                    'current' => 'admin.posts.*',
+                    'order' => 3,
                 ],
                 [
                     'label' => '评论管理',
@@ -69,14 +37,22 @@ return [
                     'route' => 'admin.comments.index',
                     'permission' => 'admin.comments.view',
                     'current' => 'admin.comments.*',
+                    'order' => 4,
+                ],
+                [
+                    'label' => '标签管理',
+                    'icon' => 'tag',
+                    'route' => 'admin.tags.index',
+                    'permission' => 'admin.posts.view',
+                    'current' => 'admin.tags.*',
                     'order' => 5,
                 ],
                 [
-                    'label' => '插件管理',
-                    'icon' => 'folder-git-2',
-                    'route' => 'admin.plugins.index',
-                    'permission' => 'admin.plugins.view',
-                    'current' => 'admin.plugins.*',
+                    'label' => '上传管理',
+                    'icon' => 'arrow-up',
+                    'route' => 'admin.upload-policies.index',
+                    'permission' => 'admin.upload.view',
+                    'current' => 'admin.upload-policies.*',
                     'order' => 6,
                 ],
                 [
@@ -86,6 +62,14 @@ return [
                     'permission' => 'admin.posts.view',
                     'current' => 'admin.import-export.*',
                     'order' => 7,
+                ],
+                [
+                    'label' => '插件管理',
+                    'icon' => 'folder-git-2',
+                    'route' => 'admin.plugins.index',
+                    'permission' => 'admin.plugins.view',
+                    'current' => 'admin.plugins.*',
+                    'order' => 8,
                 ],
             ],
         ],
@@ -119,11 +103,6 @@ return [
         ],
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | 移动端配置
-    |--------------------------------------------------------------------------
-    */
     'mobile' => [
         'breakpoint' => 'lg',
         'collapsible' => 'mobile',
@@ -131,11 +110,6 @@ return [
         'search_placeholder' => '搜索菜单...',
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | 缓存配置
-    |--------------------------------------------------------------------------
-    */
     'cache' => [
         'enabled' => true,
         'ttl' => 3600,

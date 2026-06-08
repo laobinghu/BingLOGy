@@ -1,8 +1,12 @@
+@php
+    $siteName = \App\Services\SettingsManager::siteName();
+@endphp
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
     <head>
         @include('components.head')
-        <title>{{ $title ?? '后台' }} - {{ config('app.name', 'BingLOGy') }}</title>
+        <title>{{ $title ?? '后台' }} - {{ $siteName }}</title>
         @livewireStyles
     </head>
     <body class="min-h-screen bg-white dark:bg-zinc-800">

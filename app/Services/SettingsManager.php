@@ -7,6 +7,15 @@ use Illuminate\Support\Facades\Cache;
 
 class SettingsManager
 {
+    public static function siteName(string $default = 'BingLOGy'): string
+    {
+        $siteName = self::get('site_name', config('app.name', $default));
+
+        return is_string($siteName) && trim($siteName) !== ''
+            ? trim($siteName)
+            : $default;
+    }
+
     public static function get(string $key, mixed $default = null): mixed
     {
         $setting = Setting::where('key', $key)->first();

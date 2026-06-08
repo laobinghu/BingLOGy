@@ -1,7 +1,11 @@
+@php
+    $siteName = \App\Services\SettingsManager::siteName();
+@endphp
+
 <header class="border-b border-stone-300/70 dark:border-stone-700/60">
     <div class="mx-auto flex max-w-5xl items-center justify-between px-6 py-6">
         <a href="{{ route('home') }}" class="text-xl font-semibold tracking-tight text-stone-950 dark:text-stone-50">
-            {{ config('app.name', 'BingLOGy') }}
+            {{ $siteName }}
         </a>
 
         <nav class="flex items-center gap-5 text-sm text-stone-700 dark:text-stone-300">

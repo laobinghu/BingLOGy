@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-    <title>{{ \App\Services\SettingsManager::siteName() }}</title>
-    <link href="{{ route('feed') }}" rel="self" />
-    <link href="{{ route('home') }}" />
-    <id>{{ route('home') }}</id>
+    <title>{{ $tag->name }} - {{ \App\Services\SettingsManager::siteName() }}</title>
+    <link href="{{ route('tags.feed', $tag->slug) }}" rel="self" />
+    <link href="{{ route('tags.show', $tag->slug) }}" />
+    <id>{{ route('tags.show', $tag->slug) }}</id>
     <updated>{{ $posts->first()?->published_at?->toAtomString() ?? now()->toAtomString() }}</updated>
     <generator>BingLOGy</generator>
     <language>zh-CN</language>
