@@ -49,23 +49,10 @@
         @endif
         </header>
 
-        @php
-            $tocHtml = \App\Support\Markdown::toToc($post->body ?? '');
-        @endphp
-
-        <div class="mt-10 grid gap-8 lg:grid-cols-[1fr,220px]">
+        <div class="mt-10">
             <div class="prose prose-stone dark:prose-invert max-w-none">
                 {!! \App\Services\HookManager::applyFilters('post.content.render', \App\Support\PostPresenter::bodyHtml($post), $post) !!}
             </div>
-
-            @if (trim($tocHtml) !== '')
-                <aside class="hidden lg:block">
-                    <div class="sticky top-24 rounded-2xl border border-stone-200/70 bg-paper-soft p-4 text-sm dark:border-stone-700/60 dark:bg-stone-900/40">
-                        <p class="mb-2 text-xs font-semibold tracking-[0.22em] text-stone-500 uppercase dark:text-stone-400">目录</p>
-                        {!! $tocHtml !!}
-                    </div>
-                </aside>
-            @endif
         </div>
 
         <footer class="mt-16 border-t border-stone-300/70 pt-8 text-sm dark:border-stone-700/60">
