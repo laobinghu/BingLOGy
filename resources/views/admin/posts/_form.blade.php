@@ -92,6 +92,12 @@
                         tagsCsv: @js($tagsCsvValue),
                         selectedTags: [],
                         searchQuery: '',
+                        suggestQuery: '',
+                        showSuggestions: false,
+                        suggestions: [],
+                        tagMeta: {},
+                        suggestLoading: false,
+                        suggestTimer: null,
 
                         init() {
                             this.selectedTags = this.tagsCsv
@@ -99,12 +105,81 @@
                                 : [];
                         },
 
-                        toggleTag(name) {
+                        fetchSuggestions() {
+                            if (!this.suggestQuery || this.suggestQuery.length < 1) {
+                                this.suggestions = [];
+                                this.showSuggestions = false;
+                                return;
+                            }
+                            this.suggestLoading = true;
+                            fetch('{{ route('admin.tags.suggest') }}?q=' + encodeURIComponent(this.suggestQuery))
+                                .then(r => r.json())
+                                .then(data => {
+                                    this.suggestions = data.filter(t => !this.selectedTags.includes(t.name));
+                                    data.forEach(t => { this.tagMeta[t.name] = t; });
+                                    this.showSuggestions = this.suggestions.length > 0;
+                                    this.suggestLoading = false;
+                                })
+                                .catch(() => { this.suggestLoading = false; });
+                        },
+
+                        selectSuggestion(name) {
+                            this.addTag(name);
+                            this.suggestQuery = '';
+                            this.suggestions = [];
+                            this.showSuggestions = false;
+                        },
+
+                        addTag(name) {
+                            name = name.trim();
+                            if (!name || this.selectedTags.includes(name)) return;
+                            this.selectedTags.push(name);
+                            this.updateCsv();
+                        },
+
+                        removeTag(name) {
                             const idx = this.selectedTags.indexOf(name);
-                            if (idx === -1) {
-                                this.selectedTags.push(name);
-                            } else {
+                            if (idx !== -1) {
                                 this.selectedTags.splice(idx, 1);
+                                this.updateCsv();
+                            }
+                        },
+
+                        updateCsv() {
+                            this.tagsCsv = this.selectedTags.join(', ');
+                        },
+
+                        handleInputKeydown(event) {
+                            if (event.key === 'Enter') {
+                                event.preventDefault();
+                                const val = this.suggestQuery.trim();
+                                if (val) {
+                                    this.addTag(val);
+                                    this.suggestQuery = '';
+                                    this.suggestions = [];
+                                    this.showSuggestions = false;
+                                }
+                            }
+                            if (event.key === 'Escape') {
+                                this.showSuggestions = false;
+                            }
+                        },
+
+                        handleInputInput() {
+                            clearTimeout(this.suggestTimer);
+                            if (this.suggestQuery.length < 1) {
+                                this.suggestions = [];
+                                this.showSuggestions = false;
+                                return;
+                            }
+                            this.suggestTimer = setTimeout(() => this.fetchSuggestions(), 300);
+                        },
+
+                        toggleTag(name) {
+                            if (this.selectedTags.includes(name)) {
+                                this.removeTag(name);
+                            } else {
+                                this.addTag(name);
                             }
                         },
 
@@ -116,15 +191,91 @@
                         isSelected(name) {
                             return this.selectedTags.includes(name);
                         },
+
+                        tagColor(name) {
+                            return this.tagMeta[name]?.color || null;
+                        },
                     }"
                 >
-                    <flux:input
-                        name="tags_csv"
-                        label="标签"
-                        placeholder="php, laravel, livewire"
-                        x-ref="tagsInput"
-                        x-model="tagsCsv"
-                    />
+                    {{-- Selected tags as pills --}}
+                    <template x-if="selectedTags.length > 0">
+                        <div class="mb-2 flex flex-wrap gap-1.5">
+                            <template x-for="(tag, index) in selectedTags" :key="index">
+                                <span
+                                    class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium transition"
+                                    :style="tagColor(tag) ? {
+                                        backgroundColor: tagColor(tag) + '20',
+                                        color: tagColor(tag),
+                                        borderColor: tagColor(tag) + '40',
+                                    } : {
+                                        backgroundColor: 'rgb(231 229 228 / 0.6)',
+                                        color: 'rgb(68 64 60)',
+                                    }"
+                                    :class="{ 'dark:opacity-80': !tagColor(tag) }"
+                                >
+                                    <span x-text="tag"></span>
+                                    <button
+                                        type="button"
+                                        class="ml-0.5 inline-flex opacity-60 hover:opacity-100"
+                                        x-on:click="removeTag(tag)"
+                                    >
+                                        <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                        </svg>
+                                    </button>
+                                </span>
+                            </template>
+                        </div>
+                    </template>
+
+                    {{-- Input with autocomplete --}}
+                    <div class="relative">
+                        <flux:input
+                            name="tags_csv"
+                            label="标签"
+                            placeholder="输入名称后按 Enter 添加"
+                            x-ref="tagsInput"
+                            x-model="tagsCsv"
+                            class="hidden"
+                        />
+                        <div>
+                            <label class="block text-sm font-medium mb-1 text-zinc-700 dark:text-zinc-300">标签</label>
+                            <input
+                                type="text"
+                                placeholder="输入名称后按 Enter 添加"
+                                x-model="suggestQuery"
+                                x-on:input="handleInputInput"
+                                x-on:focus="handleInputInput"
+                                x-on:keydown="handleInputKeydown"
+                                x-on:click.outside="showSuggestions = false"
+                                class="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-accent-foreground dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                            />
+                        </div>
+
+                        {{-- Suggestions dropdown --}}
+                        <div
+                            x-show="showSuggestions && suggestions.length > 0"
+                            x-transition
+                            class="absolute z-10 mt-1 w-full rounded-lg border border-zinc-200 bg-white py-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
+                        >
+                            <template x-for="(suggestion, idx) in suggestions" :key="idx">
+                                <button
+                                    type="button"
+                                    class="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-left hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                                    x-on:click="selectSuggestion(suggestion.name)"
+                                >
+                                    <span
+                                        x-show="suggestion.color"
+                                        class="inline-block size-2.5 rounded-full shrink-0"
+                                        :style="{ backgroundColor: suggestion.color }"
+                                    ></span>
+                                    <span x-text="suggestion.name"></span>
+                                    <span class="ml-auto text-xs text-zinc-400" x-text="suggestion.posts_count + ' 篇'"></span>
+                                </button>
+                            </template>
+                            <div x-show="suggestLoading" class="px-3 py-1.5 text-xs text-zinc-400">搜索中...</div>
+                        </div>
+                    </div>
                     @error('tags_csv')
                         <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror
@@ -157,6 +308,9 @@
                                             :checked="isSelected(@js($tag->name))"
                                             x-on:change="toggleTag(@js($tag->name))"
                                         />
+                                        @if ($tag->color)
+                                            <span class="inline-block size-2.5 rounded-full shrink-0" style="background-color: {{ $tag->color }}"></span>
+                                        @endif
                                         <span>{{ $tag->name }}</span>
                                     </label>
                                 @endforeach

@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\TagController as AdminTagController;
+use App\Http\Controllers\Api\TagSuggestionController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\PostImportExportController;
@@ -8,9 +10,10 @@ use App\Livewire\Admin\BlogSettings;
 use App\Livewire\Admin\UploadPolicies\Form;
 use App\Livewire\Admin\UploadPolicies\Index;
 use App\Models\Post;
+use App\Models\Tag;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('check.maintenance')->group(function () {
+Route::middleware(['installed', 'check.maintenance'])->group(function () {
     Route::get('/', function () {
         $posts = Post::with('tags')
             ->whereNotNull('published_at')
@@ -50,6 +53,9 @@ Route::middleware('check.maintenance')->group(function () {
 
     Route::resource('posts', PostController::class)->only(['index', 'show']);
 
+    Route::get('tags/{slug}', [TagController::class, 'show'])->name('tags.show');
+    Route::get('tags/{slug}/feed', [TagController::class, 'feed'])->name('tags.feed');
+
     Route::post('posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store');
 });
 
@@ -83,10 +89,13 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
 
     Route::post('posts/bulk', [PostController::class, 'bulk'])->name('posts.bulk');
 
-    Route::get('tags', [TagController::class, 'index'])->name('tags.index');
-    Route::post('tags', [TagController::class, 'store'])->name('tags.store');
-    Route::put('tags/{tag}', [TagController::class, 'update'])->name('tags.update');
-    Route::delete('tags/{tag}', [TagController::class, 'destroy'])->name('tags.destroy');
+    Route::get('tags', [AdminTagController::class, 'index'])->name('tags.index');
+    Route::post('tags', [AdminTagController::class, 'store'])->name('tags.store');
+    Route::put('tags/{tag}', [AdminTagController::class, 'update'])->name('tags.update');
+    Route::delete('tags/{tag}', [AdminTagController::class, 'destroy'])->name('tags.destroy');
+    Route::post('tags/merge', [AdminTagController::class, 'merge'])->name('tags.merge');
+    Route::get('tags/suggest', TagSuggestionController::class)->name('tags.suggest');
+    Route::post('tags/reorder', [AdminTagController::class, 'reorder'])->name('tags.reorder');
 
     Route::get('upload-policies', Index::class)->name('upload-policies.index');
     Route::get('upload-policies/create', Form::class)->name('upload-policies.create');

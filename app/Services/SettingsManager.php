@@ -9,6 +9,10 @@ class SettingsManager
 {
     public static function siteName(string $default = 'BingLOGy'): string
     {
+        if (! class_exists(Setting::class) || ! app()->has('db')) {
+            return $default;
+        }
+
         $siteName = self::get('site_name', config('app.name', $default));
 
         return is_string($siteName) && trim($siteName) !== ''
@@ -18,6 +22,10 @@ class SettingsManager
 
     public static function get(string $key, mixed $default = null): mixed
     {
+        if (! class_exists(Setting::class) || ! app()->has('db')) {
+            return $default;
+        }
+
         $setting = Setting::where('key', $key)->first();
 
         if (! $setting) {
@@ -31,6 +39,10 @@ class SettingsManager
 
     public static function set(string $key, mixed $value): void
     {
+        if (! class_exists(Setting::class) || ! app()->has('db')) {
+            return;
+        }
+
         if (! is_string($value)) {
             $value = json_encode($value, JSON_UNESCAPED_UNICODE);
         }

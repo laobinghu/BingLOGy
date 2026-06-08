@@ -12,6 +12,13 @@ use Illuminate\Support\Str;
 class PostImporter
 {
     /**
+     * Create a new PostImporter instance.
+     */
+    public function __construct(
+        private readonly TagService $tagService,
+    ) {}
+
+    /**
      * Parse a single markdown document.
      */
     public function fromString(string $raw, ?string $sourcePath = null): PostImportResult
@@ -112,17 +119,8 @@ class PostImporter
 
     public function syncTags(Post $post, array $tagNames): void
     {
-        $ids = [];
-        foreach ($tagNames as $name) {
-            $slug = Str::slug($name);
-            $tag = Tag::firstOrCreate(
-                ['slug' => $slug],
-                ['name' => $name],
-            );
-            $ids[] = $tag->id;
-        }
-
-        $post->tags()->sync($ids);
+        $tagIds = $this->tagService->resolveTagIds($tagNames);
+        $post->tags()->sync($tagIds);
     }
 
     public function resolveSlug(PostImportResult $result): string

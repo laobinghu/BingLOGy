@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Tag;
+use App\Observers\TagObserver;
+use App\Services\InstallationManager;
 use App\Services\StorageManager;
 use App\Services\PluginManager;
 use Carbon\CarbonImmutable;
@@ -27,8 +30,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (! InstallationManager::isInstalled()) {
+            return;
+        }
+
         StorageManager::registerDisks();
         PluginManager::loadActivePlugins();
+
+        Tag::observe(TagObserver::class);
 
         Gate::before(fn ($user, $ability) => $user->id === 1 ? true : null);
 

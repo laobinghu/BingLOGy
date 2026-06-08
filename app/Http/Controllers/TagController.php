@@ -2,47 +2,66 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Post;
 use App\Models\Tag;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
+use App\Services\TagAnalyticsService;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 class TagController extends Controller
 {
-    public function index(): View
+    /**
+     * Resolve tag IDs including children for hierarchical tags.
+     *
+     * @return int[]
+     */
+    private function resolveTagIds(Tag $tag): array
     {
-        $tags = Tag::withCount('posts')->orderBy('name')->get();
+        if ($tag->hasChildren()) {
+            return $tag->children()->pluck('id')->push($tag->id)->all();
+        }
 
-        return view('admin.tags.index', compact('tags'));
+        return [$tag->id];
     }
 
-    public function store(Request $request): RedirectResponse
+    public function show(string $slug): View
     {
-        $validated = $request->validate([
-            'name' => 'required|max:255|unique:tags,name',
-        ]);
+        $tag = Tag::where('slug', $slug)->firstOrFail();
 
-        Tag::create($validated);
+        $tagIds = $this->resolveTagIds($tag);
 
-        return redirect()->route('admin.tags.index')->with('success', '标签已创建！');
+        $posts = Post::with('tags')
+            ->whereHas('tags', fn ($q) => $q->whereIn('tags.id', $tagIds))
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now())
+            ->orderBy('published_at', 'desc')
+            ->paginate(20);
+
+        $childrenTags = $tag->hasChildren() ? $tag->children()->ordered()->get() : collect();
+
+        $relatedTags = ! $tag->hasChildren()
+            ? app(TagAnalyticsService::class)->getRelatedTags($tag->id, 8)
+            : collect();
+
+        return view('pages.tags.show', compact('tag', 'posts', 'childrenTags', 'relatedTags'));
     }
 
-    public function update(Request $request, Tag $tag): RedirectResponse
+    public function feed(string $slug): Response
     {
-        $validated = $request->validate([
-            'name' => 'required|max:255|unique:tags,name,'.$tag->id,
-        ]);
+        $tag = Tag::where('slug', $slug)->firstOrFail();
 
-        $tag->update($validated);
+        $tagIds = $this->resolveTagIds($tag);
 
-        return redirect()->route('admin.tags.index')->with('success', '标签已更新！');
-    }
+        $posts = Post::with('tags')
+            ->whereHas('tags', fn ($q) => $q->whereIn('tags.id', $tagIds))
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now())
+            ->orderBy('published_at', 'desc')
+            ->limit(20)
+            ->get();
 
-    public function destroy(Tag $tag): RedirectResponse
-    {
-        $tag->posts()->detach();
-        $tag->delete();
-
-        return redirect()->route('admin.tags.index')->with('success', '标签已删除！');
+        return response()
+            ->view('pages.tag-feed', compact('tag', 'posts'))
+            ->header('Content-Type', 'application/atom+xml; charset=UTF-8');
     }
 }

@@ -6,6 +6,7 @@ use App\Models\Comment;
 use App\Models\Post;
 use App\Models\Tag;
 use App\Services\SettingsManager;
+use App\Services\TagService;
 use App\Services\UploadPolicyService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,14 +24,21 @@ class PostController extends Controller
 
         if ($tagSlug = $request->query('tag')) {
             $tag = Tag::where('slug', $tagSlug)->firstOrFail();
-            $query->whereHas('tags', fn ($q) => $q->where('tags.id', $tag->id));
+
+            // If parent tag, include children's posts
+            if ($tag->hasChildren()) {
+                $tagIds = $tag->children()->pluck('id')->push($tag->id)->all();
+            } else {
+                $tagIds = [$tag->id];
+            }
+
+            $query->whereHas('tags', fn ($q) => $q->whereIn('tags.id', $tagIds));
         }
 
         $perPage = SettingsManager::get('posts_per_page', 20);
         $posts = $query->orderBy('published_at', 'desc')->paginate((int) $perPage);
-        $allTags = Tag::withCount('posts')->orderBy('name')->get();
 
-        return view('pages.posts.index', compact('posts', 'allTags'));
+        return view('pages.posts.index', compact('posts'));
     }
 
     public function show(Post $post): View
@@ -47,7 +55,18 @@ class PostController extends Controller
             ->orderBy('created_at', 'asc')
             ->get();
 
-        return view('pages.posts.show', compact('post', 'comments'));
+        $relatedPosts = $post->tags->isNotEmpty()
+            ? Post::with('tags')
+                ->where('id', '!=', $post->id)
+                ->whereNotNull('published_at')
+                ->where('published_at', '<=', now())
+                ->whereHas('tags', fn ($q) => $q->whereIn('tags.id', $post->tags->pluck('id')))
+                ->orderBy('published_at', 'desc')
+                ->limit(4)
+                ->get()
+            : collect();
+
+        return view('pages.posts.show', compact('post', 'comments', 'relatedPosts'));
     }
 
     // 后台管理
@@ -96,21 +115,21 @@ class PostController extends Controller
         }
 
         $post = Post::create($validated);
-        $this->syncTags($post, $request);
+        app(TagService::class)->sync($post, $request->input('tags_csv'));
 
         return redirect()->route('admin.posts.index')->with('success', '文章已创建！');
     }
 
     public function create(): View
     {
-        $tags = Tag::orderBy('name')->get();
+        $tags = Tag::orderBy('name')->get(['id', 'name', 'color']);
 
         return view('admin.posts.create', compact('tags'));
     }
 
     public function edit(Post $post): View
     {
-        $tags = Tag::orderBy('name')->get();
+        $tags = Tag::orderBy('name')->get(['id', 'name', 'color']);
 
         $publishStatus = match (true) {
             $post->published_at && $post->published_at->isPast() => 'published',
@@ -158,27 +177,9 @@ class PostController extends Controller
         };
 
         $post->save();
-        $this->syncTags($post, $request);
+        app(TagService::class)->sync($post, $request->input('tags_csv'));
 
         return redirect()->route('admin.posts.index')->with('success', '文章已更新！');
-    }
-
-    private function syncTags(Post $post, Request $request): void
-    {
-        if ($request->filled('tags_csv')) {
-            $names = array_values(array_filter(array_map('trim', preg_split('/[,，]/u', (string) $request->input('tags_csv')) ?: [])));
-            $tagIds = [];
-            foreach ($names as $name) {
-                $slug = Str::slug($name);
-                $tag = Tag::firstOrCreate(['slug' => $slug], ['name' => $name]);
-                $tagIds[] = $tag->id;
-            }
-            $post->tags()->sync($tagIds);
-
-            return;
-        }
-
-        $post->tags()->sync($request->input('tags', []));
     }
 
     public function bulk(Request $request): RedirectResponse
@@ -204,42 +205,55 @@ class PostController extends Controller
             $posts->each(fn ($p) => $p->update(['published_at' => null]));
             $label = '撤销发布';
         } elseif ($action === 'delete') {
-            $posts->each(function ($p) {
+            $allTagIds = [];
+            $posts->each(function ($p) use (&$allTagIds) {
                 if ($p->cover_image) {
                     app(UploadPolicyService::class)->delete($p->cover_image, 'cover_image');
                 }
+                $allTagIds = array_merge($allTagIds, $p->tags()->pluck('tags.id')->all());
                 $p->delete();
             });
+            app(TagService::class)->syncCountsByIds($allTagIds);
             $label = '删除';
         } elseif (in_array($action, ['tags_append', 'tags_replace', 'tags_remove'], true)) {
-            $tagNames = array_values(array_filter(array_map('trim', preg_split('/[,，]/u', (string) $request->input('tags', '')) ?: [])));
+            $tagService = app(TagService::class);
+            $tagNames = $tagService->parseTagNames($request->input('tags', ''));
 
             if (empty($tagNames)) {
                 return back()->with('error', '标签操作需要填写标签名，逗号分隔。');
             }
 
-            $tagIds = [];
-            foreach ($tagNames as $name) {
-                $slug = Str::slug($name);
-                $tag = Tag::firstOrCreate(['slug' => $slug], ['name' => $name]);
-                $tagIds[] = $tag->id;
-            }
+            $tagIds = $tagService->resolveTagIds($tagNames);
 
             $posts->load('tags');
 
+            $allAffectedIds = $tagIds;
+
             if ($action === 'tags_replace') {
-                $posts->each(fn ($p) => $p->tags()->sync($tagIds));
+                $posts->each(function ($p) use ($tagIds, &$allAffectedIds) {
+                    $oldIds = $p->tags()->pluck('tags.id')->all();
+                    $p->tags()->sync($tagIds);
+                    $allAffectedIds = array_merge($allAffectedIds, $oldIds);
+                });
                 $label = '替换标签';
             } elseif ($action === 'tags_remove') {
-                $posts->each(function ($p) use ($tagIds) {
-                    $keep = $p->tags()->pluck('tags.id')->diff($tagIds)->values()->all();
-                    $p->tags()->sync($keep);
+                $posts->each(function ($p) use ($tagIds, &$allAffectedIds) {
+                    $oldIds = $p->tags()->pluck('tags.id')->all();
+                    $keep = array_diff($oldIds, $tagIds);
+                    $p->tags()->sync(array_values($keep));
+                    $allAffectedIds = array_merge($allAffectedIds, $oldIds);
                 });
                 $label = '移除标签';
             } else {
-                $posts->each(fn ($p) => $p->tags()->attach(array_diff($tagIds, $p->tags()->pluck('tags.id')->all())));
+                $posts->each(function ($p) use ($tagIds, &$allAffectedIds) {
+                    $currentIds = $p->tags()->pluck('tags.id')->all();
+                    $p->tags()->attach(array_diff($tagIds, $currentIds));
+                    $allAffectedIds = array_merge($allAffectedIds, $currentIds, $tagIds);
+                });
                 $label = '追加标签';
             }
+
+            $tagService->syncCountsByIds($allAffectedIds);
         } else {
             return back()->with('error', '未知批量操作。');
         }
@@ -253,7 +267,10 @@ class PostController extends Controller
             app(UploadPolicyService::class)->delete($post->cover_image, 'cover_image');
         }
 
+        $tagIds = $post->tags()->pluck('tags.id')->all();
         $post->delete();
+
+        app(TagService::class)->syncCountsByIds($tagIds);
 
         return redirect()->route('admin.posts.index')->with('success', '文章已删除！');
     }
